@@ -20,6 +20,8 @@
 &lt;p&gt;What does it mean to write idiomatic go tests? I will outline what it means to me and try to convey through details and examples what I wish I had known when starting out with Go.&lt;/p&gt;
 
 &lt;h3 id=&#34;idiomatic-go-tests-are-written-using-the-builtin-testing-package&#34;&gt;Idiomatic go tests are written using the builtin testing package&lt;/h3&gt;
+
+&lt;p&gt;Go comes with a builtin testing package. There is no need for an external testing package. Lets take a closer look at what this package allows you to do.&lt;/p&gt;
 </description>
     </item>
     
