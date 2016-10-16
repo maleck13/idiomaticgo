@@ -1,0 +1,7 @@
+baseurl = "http://replace-this-with-your-hugo-site.com/"
+title = "Idiomatic Go"
+theme = "ghostwriter"
+languageCode = "en-us"
+[Author]
+    name = "Craig Brookes"
+    profile = "https://github.com/maleck13"
