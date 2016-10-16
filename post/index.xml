@@ -15,7 +15,12 @@
       <pubDate>Sun, 16 Oct 2016 10:20:44 +0100</pubDate>
       
       <guid>https://maleck13.github.io/idiomaticgo/post/testing/idiomatic-go-tests/</guid>
-      <description></description>
+      <description>
+
+&lt;p&gt;What does it mean to write idiomatic go tests? I will outline what it means to me and try to convey through details and examples what I wish I had known when starting out with Go.&lt;/p&gt;
+
+&lt;h3 id=&#34;idiomatic-go-tests-are-written-using-the-builtin-testing-package&#34;&gt;Idiomatic go tests are written using the builtin testing package&lt;/h3&gt;
+</description>
     </item>
     
   </channel>
