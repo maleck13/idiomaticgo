@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Post-rsses on Idiomatic Go</title>
+    <link>http://replace-this-with-your-hugo-site.com/post/index.xml</link>
+    <description>Recent content in Post-rsses on Idiomatic Go</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 16 Oct 2016 10:20:44 +0100</lastBuildDate>
+    <atom:link href="http://replace-this-with-your-hugo-site.com/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>idiomatic go tests</title>
+      <link>http://replace-this-with-your-hugo-site.com/post/testing/idiomatic-go-tests/</link>
+      <pubDate>Sun, 16 Oct 2016 10:20:44 +0100</pubDate>
+      
+      <guid>http://replace-this-with-your-hugo-site.com/post/testing/idiomatic-go-tests/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>
