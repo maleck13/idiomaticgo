@@ -2,19 +2,19 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Idiomatic Go</title>
-    <link>https://https:/maleck13.github.io/idiomaticgo/index.xml</link>
+    <link>https://maleck13.github.io/idiomaticgo/index.xml</link>
     <description>Recent content on Idiomatic Go</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sun, 16 Oct 2016 10:20:44 +0100</lastBuildDate>
-    <atom:link href="https://https:/maleck13.github.io/idiomaticgo/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://maleck13.github.io/idiomaticgo/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>idiomatic go tests</title>
-      <link>https://https/maleck13.github.io/idiomaticgo/post/testing/idiomatic-go-tests/</link>
+      <link>https://maleck13.github.io/idiomaticgo/post/testing/idiomatic-go-tests/</link>
       <pubDate>Sun, 16 Oct 2016 10:20:44 +0100</pubDate>
       
-      <guid>https://https/maleck13.github.io/idiomaticgo/post/testing/idiomatic-go-tests/</guid>
+      <guid>https://maleck13.github.io/idiomaticgo/post/testing/idiomatic-go-tests/</guid>
       <description></description>
     </item>
     
