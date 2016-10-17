@@ -8,7 +8,7 @@
 Idiomatic go tests are written using the builtin testing package Go comes with a builtin testing package. There is no need for an external testing package. Lets take a closer look at what this package allows you to do.">
         <meta name="HandheldFriendly" content="True">
         <meta name="MobileOptimized" content="320">
-        <meta name="generator" content="Hugo 0.17-DEV" />
+        <meta name="generator" content="Hugo 0.17" />
         <meta name="robots" content="index,follow">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
@@ -82,6 +82,50 @@ Idiomatic go tests are written using the builtin testing package Go comes with a
 <h3 id="idiomatic-go-tests-are-written-using-the-builtin-testing-package">Idiomatic go tests are written using the builtin testing package</h3>
 
 <p>Go comes with a builtin testing package. There is no need for an external testing package. Lets take a closer look at what this package allows you to do.</p>
+
+<p>Tests in a go program are normally defined along with the source code for the package. Notice below that the test file is names <code>*_test.go</code> go expects your tests to be named this way.</p>
+
+<pre><code>myPkg
+├── repo.go
+├── repo_test.go
+
+</code></pre>
+
+<p>The testing package is built to be used with the <code>go test</code> command. It looks for tests that are defined in the following way:</p>
+
+<pre><code class="language-go">func TestXxx(*testing.T)
+</code></pre>
+
+<p>Lets look at a very simple example the first file is <code>sum.go</code> and the second file <code>sum_test.go</code>:</p>
+
+<p><code>sum.go</code></p>
+
+<pre><code class="language-go">package myPkg  
+
+Sum(a,b int)int{
+    return a + b
+}
+
+</code></pre>
+
+<p>Next we have our test for this package. Things to notice here include the package name and the test name:</p>
+
+<p><code>sum_test.go</code></p>
+
+<pre><code class="language-go">package myPkg_test //notice we name it _test this allows us to work only with the exported api of our package.
+
+import &quot;testing&quot;
+import &quot;github.com/maleck13/myPkg&quot;
+
+func TestSum(t *testing.T){
+    if 3 != myPkg.Sum(1,2){
+        t.Fatalf(&quot;expected the sum to equal %d&quot;,3)
+    } 
+}
+
+</code></pre>
+
+<h3 id="fixtures-mocks-and-stubs">Fixtures / Mocks and Stubs</h3>
 
 </div>
 
