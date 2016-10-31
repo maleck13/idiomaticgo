@@ -21,9 +21,10 @@
 
 &lt;h3 id=&#34;idiomatic-go-tests-are-written-using-the-builtin-testing-package&#34;&gt;Idiomatic go tests are written using the builtin testing package&lt;/h3&gt;
 
-&lt;p&gt;Go comes with a builtin testing package. There is no need for an external testing package. Lets take a closer look at what this package allows you to do.&lt;/p&gt;
+&lt;p&gt;Go comes with a builtin &lt;a href=&#34;https://golang.org/pkg/testing/&#34;&gt;testing&lt;/a&gt; package. There is no need for an external testing package. Although these do exist and it is not for me to say you shouldn&amp;rsquo;t use them.
+However I would encourage writing tests using the builtin testing package, and only when you begin to feel it is failing you somehow, look at what external packages can offer.&lt;/p&gt;
 
-&lt;p&gt;Tests in a go program are normally defined along with the source code for the package. Notice below that the test file is names &lt;code&gt;*_test.go&lt;/code&gt; go expects your tests to be named this way.&lt;/p&gt;
+&lt;p&gt;Tests in a Go program are normally defined along with the source code for the package. Notice below that the test file is names &lt;code&gt;*_test.go&lt;/code&gt; Go expects your tests to be named this way.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;myPkg
 ├── repo.go
@@ -65,7 +66,137 @@ func TestSum(t *testing.T){
 
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id=&#34;fixtures-mocks-and-stubs&#34;&gt;Fixtures / Mocks and Stubs&lt;/h3&gt;
+&lt;p&gt;Somethings worth pointing out:
+- In our test the package name is &lt;code&gt;package_test&lt;/code&gt; this is a convention in Go. It allows the test file to be in the same package as the source code, but only have access to the
+exported types, and functions etc.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Notice that in our test, we do not have an inbuilt assert. Read the code again, notice that there is very little different
+this code than our business logic code, it is just more Go code. This is intentional. It may mean you write a few more lines of code
+but has the advantage of allowing anyone who knows Go to be able to read and modify your test code without the overhead of
+learning a testing DSL.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;mocks-and-stubs&#34;&gt;Mocks and Stubs&lt;/h3&gt;
+
+&lt;p&gt;Mocks are used frequently in Go tests. The most common way you will see a mock used is to provide a different implementation of a required interface. Mocks can be stored anywhere in your test code, but often they would be stored
+under a mock or test package.  Lets look at an example of mocking in Go.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package mything
+
+type Doer interface{
+    Do()error 
+}
+
+func BusinessDoer (d Doer)error{
+    //some business logic 
+    return d.Do()
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And now our test file:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package mything_test 
+
+import mything
+
+//This mock could be in a separate file.
+
+type mockDoer struct{
+    Error error 
+}
+// implment our Doer iterface
+func(md mockDoer)Do()error{
+    return md.Error
+}
+
+func TestBusinessDoer(t *testing.T){
+    doer := mockDoer{}
+    if err := mything.BusinessDoer(doer); err != nil{
+        t.Fatalf(&amp;quot;did not expect an error but got %s&amp;quot;,err.Error())
+    }
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;table-driven-tests&#34;&gt;Table driven tests&lt;/h3&gt;
+
+&lt;p&gt;In the above example we defined a test that tested some business logic for one case where the business logic
+does not return an error. Normally we would also want to at least test one other case, the case where the the dependency does
+return an error. Now we could define a new test entirely for this, however often in Go code you will see an approach for this called table testing.
+Lets look at an example that expands on the first example.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package mything
+
+type Doer interface{
+    Do()error 
+}
+
+func BusinessDoer (d Doer)error{
+    //some business logic 
+    return d.Do()
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And now our test file:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package mything_test 
+
+import mything
+
+//This mock could be in a separate file.
+
+type mockDoer struct{
+    Error error 
+}
+// implment our Doer iterface
+func(md mockDoer)Do()error{
+    return md.Error
+}
+
+func TestBusinessDoer(t *testing.T){
+    cases := []struct{
+        Name string
+        ExpectError bool 
+        Error error
+    }{
+        {
+            Name:&amp;quot;test does business logic&amp;quot;,
+            ExpectError : false,
+            Error : nil,
+        },
+        {
+            Name:&amp;quot;test fails when dependency errors&amp;quot;,
+            ExpectError : true,
+            Error : errors.New(&amp;quot;an error&amp;quot;),
+        },
+    }
+
+    for _,td := range cases{
+        t.Run(td.Name, func (t *testing.T){
+            doer := mockDoer{Error: td.Error}
+            err := mything.BusinessDoer(doer) 
+            if td.ExpectError &amp;amp;&amp;amp; err == nil{
+                t.Fatalf(&amp;quot;expected an error but got none&amp;quot;)
+            } 
+            if ! td.ExpectError &amp;amp;&amp;amp; err != nil{
+                t.Fatalf(&amp;quot;did not expect an error but got one %s &amp;quot;, err.Error())
+            }
+        })
+    }
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So now we are defining a set of test cases in a slice. We are defining some inputs and expected behaviour. Then we are ranging over each of these
+tests cases and running them in a separate sub test. Sub tests allow us to re run a single failing test case rather than them all. In the above case if
+you wanted to run the sub test &lt;code&gt;test fails when dependency errors&lt;/code&gt; you would do so by running the following command from within the package.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;go test -run TestBusinessDoer/test_fails_when_dependency_errors
+
+&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     
