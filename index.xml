@@ -24,7 +24,7 @@
 &lt;p&gt;Go comes with a builtin &lt;a href=&#34;https://golang.org/pkg/testing/&#34;&gt;testing&lt;/a&gt; package. There is no need for an external testing package. Although these do exist and it is not for me to say you shouldn&amp;rsquo;t use them.
 However I would encourage writing tests using the builtin testing package, and only when you begin to feel it is failing you somehow, look at what external packages can offer.&lt;/p&gt;
 
-&lt;p&gt;Tests in a Go program are normally defined along with the source code for the package. Notice below that the test file is names &lt;code&gt;*_test.go&lt;/code&gt; Go expects your tests to be named this way.&lt;/p&gt;
+&lt;p&gt;Tests in a Go program are normally defined along with the source code for the package. Notice below that the test file is named &lt;code&gt;*_test.go&lt;/code&gt; Go expects your tests to be named this way.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;myPkg
 ├── repo.go
@@ -66,15 +66,16 @@ func TestSum(t *testing.T){
 
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Somethings worth pointing out:
-- In our test the package name is &lt;code&gt;package_test&lt;/code&gt; this is a convention in Go. It allows the test file to be in the same package as the source code, but only have access to the
-exported types, and functions etc.&lt;/p&gt;
+&lt;p&gt;Somethings worth pointing out:&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;Notice that in our test, we do not have an inbuilt assert. Read the code again, notice that there is very little different
-this code than our business logic code, it is just more Go code. This is intentional. It may mean you write a few more lines of code
+&lt;li&gt;&lt;p&gt;In our test the package name is &lt;code&gt;package_test&lt;/code&gt; this is a convention in Go. It allows the test file to be in the same package as the source code, but only have access to the
+exported types, and functions etc.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Notice that in our test, we do not have an inbuilt assert. Read the code again, notice that there is very little different
+in how our test code reads compared with our business logic code, it is just more Go code. This is intentional. It may mean you write a few more lines of code,
 but has the advantage of allowing anyone who knows Go to be able to read and modify your test code without the overhead of
-learning a testing DSL.&lt;/li&gt;
+learning a testing DSL.&lt;/p&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h3 id=&#34;mocks-and-stubs&#34;&gt;Mocks and Stubs&lt;/h3&gt;
@@ -119,6 +120,11 @@ func TestBusinessDoer(t *testing.T){
 }
 
 &lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So in our test we have swapped out the original implementation of the Doer interface for our own implementation that we can easily
+control the behaviour of. It is important that if you want to unit test your code, that you express the dependencies used by that piece of code
+as an interface as this will allow for simple mocking. It is also a good reason to aim to keep your interfaces small. The smaller the interface the
+less work it is to mock out.&lt;/p&gt;
 
 &lt;h3 id=&#34;table-driven-tests&#34;&gt;Table driven tests&lt;/h3&gt;
 

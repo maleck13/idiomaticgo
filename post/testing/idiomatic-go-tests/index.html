@@ -84,7 +84,7 @@ Idiomatic go tests are written using the builtin testing package Go comes with a
 <p>Go comes with a builtin <a href="https://golang.org/pkg/testing/">testing</a> package. There is no need for an external testing package. Although these do exist and it is not for me to say you shouldn&rsquo;t use them.
 However I would encourage writing tests using the builtin testing package, and only when you begin to feel it is failing you somehow, look at what external packages can offer.</p>
 
-<p>Tests in a Go program are normally defined along with the source code for the package. Notice below that the test file is names <code>*_test.go</code> Go expects your tests to be named this way.</p>
+<p>Tests in a Go program are normally defined along with the source code for the package. Notice below that the test file is named <code>*_test.go</code> Go expects your tests to be named this way.</p>
 
 <pre><code>myPkg
 ├── repo.go
@@ -126,15 +126,16 @@ func TestSum(t *testing.T){
 
 </code></pre>
 
-<p>Somethings worth pointing out:
-- In our test the package name is <code>package_test</code> this is a convention in Go. It allows the test file to be in the same package as the source code, but only have access to the
-exported types, and functions etc.</p>
+<p>Somethings worth pointing out:</p>
 
 <ul>
-<li>Notice that in our test, we do not have an inbuilt assert. Read the code again, notice that there is very little different
-this code than our business logic code, it is just more Go code. This is intentional. It may mean you write a few more lines of code
+<li><p>In our test the package name is <code>package_test</code> this is a convention in Go. It allows the test file to be in the same package as the source code, but only have access to the
+exported types, and functions etc.</p></li>
+
+<li><p>Notice that in our test, we do not have an inbuilt assert. Read the code again, notice that there is very little different
+in how our test code reads compared with our business logic code, it is just more Go code. This is intentional. It may mean you write a few more lines of code,
 but has the advantage of allowing anyone who knows Go to be able to read and modify your test code without the overhead of
-learning a testing DSL.</li>
+learning a testing DSL.</p></li>
 </ul>
 
 <h3 id="mocks-and-stubs">Mocks and Stubs</h3>
@@ -179,6 +180,11 @@ func TestBusinessDoer(t *testing.T){
 }
 
 </code></pre>
+
+<p>So in our test we have swapped out the original implementation of the Doer interface for our own implementation that we can easily
+control the behaviour of. It is important that if you want to unit test your code, that you express the dependencies used by that piece of code
+as an interface as this will allow for simple mocking. It is also a good reason to aim to keep your interfaces small. The smaller the interface the
+less work it is to mock out.</p>
 
 <h3 id="table-driven-tests">Table driven tests</h3>
 
