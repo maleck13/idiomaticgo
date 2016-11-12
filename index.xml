@@ -6,8 +6,202 @@
     <description>Recent content on Idiomatic Go</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 16 Oct 2016 10:20:44 +0100</lastBuildDate>
+    <lastBuildDate>Wed, 02 Nov 2016 10:30:10 +0000</lastBuildDate>
     <atom:link href="http://idiomaticgo.com/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>accept interfaces return structs</title>
+      <link>http://idiomaticgo.com/post/best-practice/accept-interfaces-return-structs/</link>
+      <pubDate>Wed, 02 Nov 2016 10:30:10 +0000</pubDate>
+      
+      <guid>http://idiomaticgo.com/post/best-practice/accept-interfaces-return-structs/</guid>
+      <description>&lt;p&gt;I have heard mentioned several times this idea of accepting interfaces and returning structs.
+Here I will try to outline why this is good practice.&lt;/p&gt;
+
+&lt;p&gt;When writing packages our goal is for them to be consumed either by our own code, but also hopefully by others.
+We want to make this as simple as possible and not cause frustration for the consumers of our packages.
+Accepting interfaces and returning structs means that the consumers of our packages can reduce the coupling between their code
+and yours. It means they can more easily write tests for their code that consumes your code. Lets look at some examples.&lt;/p&gt;
+
+&lt;p&gt;First lets look at what happens when we take accept a type specific to our package and return an interface we define:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
+package rest
+
+type Config struct{
+    Host string 
+    Port int32
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
+package client
+
+import &amp;quot;github.com/someone/rest&amp;quot;
+
+type Client interface{
+    DoSomething()error
+    DoSomethingMore()error
+    ThisIsDoingSomething()error
+}
+
+func NewClient(c rest.Config)Client{
+    /// init and return a client
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now someone consuming our code has to do some extra work and rely on not just the &lt;code&gt;client&lt;/code&gt; package but also the &lt;code&gt;rest&lt;/code&gt; package.&lt;/p&gt;
+
+&lt;p&gt;A consumer of our code is now forced to depend on two of our packages.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
+package mywebsite
+
+import(
+    &amp;quot;github.com/someone/client&amp;quot;
+    &amp;quot;github.com/someone/rest&amp;quot;
+)
+
+func SomeFunc(c client.Client)error{
+    
+    return c.DoSomething()
+}
+
+func main (){
+    c := client.NewClient(rest.Config{
+        Host:&amp;quot;ahost&amp;quot;,
+        Port:3000,
+    })
+    SomeFunc(c)
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Also if the consumer of our library/package wants to add tests they also have to do extra work. Why? Because we returned and interface,
+the consumer is now forced to implement every method on that interface rather than just the ones they care about:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//test my service with a mock client 
+
+package mywebsite_test
+
+import &amp;quot;github.com/me/mywebsite&amp;quot; 
+
+type mockClient struct{}
+//notice we have to implement all the methods rather than just the one we use.
+
+func (mockClient)DoSomething()error{
+    return nil
+}
+func (mockClient) DoSomethingMore()error{
+    return nil
+}
+func (mockClient)ThisIsDoingSomething()error{
+    return nil 
+}
+
+func TestSomeFunc(t *testing.T){
+    if err := mywebsite.SomeFunc(mockClient{}); err != nil{
+        t.Errorf(&amp;quot;did not expect an error but got %s &amp;quot;, err.Error())
+    }
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now lets change our implementation to accept intefaces and return structs.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package rest
+
+type Config struct{
+    Host string 
+    Port int32
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
+package client
+
+import &amp;quot;github.com/someone/rest&amp;quot;
+
+type ClientConfig interface{
+    Host()string 
+    Port()int32
+}
+
+type Client struct{ 
+}
+
+func (c *Client)DoSomething()error{
+    return nil 
+}
+//imagine more methods
+
+func New(c rest.Config)*Client{
+    /// init and return a client
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So now our implementation has changed lets see the impact we have on the consumers of our code.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
+package mywebsite
+
+import(
+    &amp;quot;github.com/someone/client&amp;quot;
+)
+
+type clientConfig struct{ }
+
+func (cc clientConfig)Host()string{
+    return &amp;quot;ahost&amp;quot;
+}
+
+func (cc clientConfig)Port()int32{
+    return 3000
+}
+
+type Client interface{
+    DoSomething()error 
+}
+
+func SomeFunc(c Client)error{
+    
+    return c.DoSomething()
+}
+
+func main (){
+    c := client.New(&amp;amp;clientConfig{})
+    SomeFunc(c)
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So now there is only one import from our package reducing our footprint on the consumer&amp;rsquo;s code. But more importantly, because we returned a struct,
+the consumer of the code can define their own interface with just the methods they care about. Lets look at our test code now.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//test my service with a mock client 
+
+package mywebsite_test
+
+import &amp;quot;github.com/me/mywebsite&amp;quot; 
+
+type mockClient struct{}
+//notice we have to implement ONLY the method we use now.
+
+func (mockClient)DoSomething()error{
+    return nil
+}
+
+func TestSomeFunc(t *testing.T){
+    if err := mywebsite.SomeFunc(mockClient{}); err != nil{
+        t.Errorf(&amp;quot;did not expect an error but got %s &amp;quot;, err.Error())
+    }
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The boiler plate in the test is vastly reduced as only one method had to be mocked rather than three.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>idiomatic go tests</title>
