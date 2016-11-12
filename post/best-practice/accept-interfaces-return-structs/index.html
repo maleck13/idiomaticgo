@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>accept interfaces return structs &middot; Craig Brookes</title>
+        <title>Accept interfaces return structs &middot; Craig Brookes</title>
         <meta name="description" content="Outlines why you should write your packages to accept interfaces and return structs">
         <meta name="HandheldFriendly" content="True">
         <meta name="MobileOptimized" content="320">
@@ -58,7 +58,7 @@
 <div class="container">
     <article class="post-container" itemscope="" itemtype="http://schema.org/BlogPosting">
         <header class="post-header">
-    <h1 class="post-title" itemprop="name headline">accept interfaces return structs</h1>
+    <h1 class="post-title" itemprop="name headline">Accept interfaces return structs</h1>
     
         <p class="post-description" itemprop="description">Outlines why you should write your packages to accept interfaces and return structs</p>
     
@@ -77,14 +77,15 @@
     
 
     <p>I have heard mentioned several times this idea of accepting interfaces and returning structs.
-Here I will try to outline why this is good practice.</p>
+Here I will try to outline why I think this is good practice.</p>
 
-<p>When writing packages our goal is for them to be consumed either by our own code, but also hopefully by others.
-We want to make this as simple as possible and not cause frustration for the consumers of our packages.
-Accepting interfaces and returning structs means that the consumers of our packages can reduce the coupling between their code
-and yours. It means they can more easily write tests for their code that consumes your code. Lets look at some examples.</p>
+<p>When writing packages our goal is for them to be consumed by someone. Either by our own code, but also, hopefully, by others too.
+We want to make this as simple and frictionless as possible and avoid causing frustration for the consumers of our packages.
+Accepting interfaces and returning structs can be a powerful way to achieve this.
+It allows the consumers of our packages to reduce the coupling between their code and yours. It also makes it
+easier to write tests for their code that depend on your package. Lets look at some examples.</p>
 
-<p>First lets look at what happens when we take accept a type specific to our package and return an interface we define:</p>
+<p>First lets look at what happens when we accept a type specific to our package in the exposed API and then return an interface we have defined:</p>
 
 <pre><code class="language-go">
 package rest
@@ -112,9 +113,8 @@ func NewClient(c rest.Config)Client{
 }
 </code></pre>
 
-<p>Now someone consuming our code has to do some extra work and rely on not just the <code>client</code> package but also the <code>rest</code> package.</p>
-
-<p>A consumer of our code is now forced to depend on two of our packages.</p>
+<p>You could argue that the config and the client should be in the same package and you would probably be right, but this is just a contrived example to illustrate the point.
+Now someone consuming our code has to do some extra work when testing and also rely on not only the <code>client</code> package but also the <code>rest</code> package.</p>
 
 <pre><code class="language-go">
 package mywebsite
@@ -138,7 +138,7 @@ func main (){
 }
 </code></pre>
 
-<p>Also if the consumer of our library/package wants to add tests they also have to do extra work. Why? Because we returned and interface,
+<p>So we mentioned how this pattern effect tests. How does this effect tests? Well because we returned an interface that we defined,
 the consumer is now forced to implement every method on that interface rather than just the ones they care about:</p>
 
 <pre><code class="language-go">//test my service with a mock client 
@@ -170,19 +170,8 @@ func TestSomeFunc(t *testing.T){
 
 <p>Now lets change our implementation to accept intefaces and return structs.</p>
 
-<pre><code class="language-go">package rest
-
-type Config struct{
-    Host string 
-    Port int32
-}
-
-</code></pre>
-
 <pre><code class="language-go">
 package client
-
-import &quot;github.com/someone/rest&quot;
 
 type ClientConfig interface{
     Host()string 
@@ -190,15 +179,20 @@ type ClientConfig interface{
 }
 
 type Client struct{ 
+    config ClientConfig
 }
 
 func (c *Client)DoSomething()error{
+    //do some work ...
     return nil 
 }
 //imagine more methods
 
-func New(c rest.Config)*Client{
-    /// init and return a client
+/// New inits and returns a client
+func New(c ClientConfig)*Client{
+    return &amp;Client{
+        config: c,
+    }
 }
 </code></pre>
 
@@ -208,7 +202,7 @@ func New(c rest.Config)*Client{
 package mywebsite
 
 import(
-    &quot;github.com/someone/client&quot;
+    &quot;github.com/someone/client&quot; //Only one import now
 )
 
 type clientConfig struct{ }
@@ -221,6 +215,7 @@ func (cc clientConfig)Port()int32{
     return 3000
 }
 
+// Consumer can now define an interface that our struct fulfills but that only has one method.
 type Client interface{
     DoSomething()error 
 }
@@ -260,7 +255,9 @@ func TestSomeFunc(t *testing.T){
 
 </code></pre>
 
-<p>The boiler plate in the test is vastly reduced as only one method had to be mocked rather than three.</p>
+<p>The boiler plate in the test is vastly reduced as only one method had to be mocked rather than three.
+Hopefully I have shown the benefit of accepting interfaces and returning structs here and it will inspire you to
+make use of this pattern in your own code.</p>
 
 </div>
 
@@ -268,7 +265,7 @@ func TestSomeFunc(t *testing.T){
     
 
     <div class="share">
-        <a class="icon-twitter" href="http://twitter.com/share?text=accept%20interfaces%20return%20structs&url=http%3a%2f%2fidiomaticgo.com%2fpost%2fbest-practice%2faccept-interfaces-return-structs%2f"
+        <a class="icon-twitter" href="http://twitter.com/share?text=Accept%20interfaces%20return%20structs&url=http%3a%2f%2fidiomaticgo.com%2fpost%2fbest-practice%2faccept-interfaces-return-structs%2f"
             onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
             <i class="fa fa-twitter"></i>
             <span class="hidden">Twitter</span>

@@ -10,20 +10,21 @@
     <atom:link href="http://idiomaticgo.com/post/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>accept interfaces return structs</title>
+      <title>Accept interfaces return structs</title>
       <link>http://idiomaticgo.com/post/best-practice/accept-interfaces-return-structs/</link>
       <pubDate>Wed, 02 Nov 2016 10:30:10 +0000</pubDate>
       
       <guid>http://idiomaticgo.com/post/best-practice/accept-interfaces-return-structs/</guid>
       <description>&lt;p&gt;I have heard mentioned several times this idea of accepting interfaces and returning structs.
-Here I will try to outline why this is good practice.&lt;/p&gt;
+Here I will try to outline why I think this is good practice.&lt;/p&gt;
 
-&lt;p&gt;When writing packages our goal is for them to be consumed either by our own code, but also hopefully by others.
-We want to make this as simple as possible and not cause frustration for the consumers of our packages.
-Accepting interfaces and returning structs means that the consumers of our packages can reduce the coupling between their code
-and yours. It means they can more easily write tests for their code that consumes your code. Lets look at some examples.&lt;/p&gt;
+&lt;p&gt;When writing packages our goal is for them to be consumed by someone. Either by our own code, but also, hopefully, by others too.
+We want to make this as simple and frictionless as possible and avoid causing frustration for the consumers of our packages.
+Accepting interfaces and returning structs can be a powerful way to achieve this.
+It allows the consumers of our packages to reduce the coupling between their code and yours. It also makes it
+easier to write tests for their code that depend on your package. Lets look at some examples.&lt;/p&gt;
 
-&lt;p&gt;First lets look at what happens when we take accept a type specific to our package and return an interface we define:&lt;/p&gt;
+&lt;p&gt;First lets look at what happens when we accept a type specific to our package in the exposed API and then return an interface we have defined:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
 package rest
@@ -51,9 +52,8 @@ func NewClient(c rest.Config)Client{
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Now someone consuming our code has to do some extra work and rely on not just the &lt;code&gt;client&lt;/code&gt; package but also the &lt;code&gt;rest&lt;/code&gt; package.&lt;/p&gt;
-
-&lt;p&gt;A consumer of our code is now forced to depend on two of our packages.&lt;/p&gt;
+&lt;p&gt;You could argue that the config and the client should be in the same package and you would probably be right, but this is just a contrived example to illustrate the point.
+Now someone consuming our code has to do some extra work when testing and also rely on not only the &lt;code&gt;client&lt;/code&gt; package but also the &lt;code&gt;rest&lt;/code&gt; package.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
 package mywebsite
@@ -77,7 +77,7 @@ func main (){
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Also if the consumer of our library/package wants to add tests they also have to do extra work. Why? Because we returned and interface,
+&lt;p&gt;So we mentioned how this pattern effect tests. How does this effect tests? Well because we returned an interface that we defined,
 the consumer is now forced to implement every method on that interface rather than just the ones they care about:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//test my service with a mock client 
@@ -109,19 +109,8 @@ func TestSomeFunc(t *testing.T){
 
 &lt;p&gt;Now lets change our implementation to accept intefaces and return structs.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package rest
-
-type Config struct{
-    Host string 
-    Port int32
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
 &lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
 package client
-
-import &amp;quot;github.com/someone/rest&amp;quot;
 
 type ClientConfig interface{
     Host()string 
@@ -129,15 +118,20 @@ type ClientConfig interface{
 }
 
 type Client struct{ 
+    config ClientConfig
 }
 
 func (c *Client)DoSomething()error{
+    //do some work ...
     return nil 
 }
 //imagine more methods
 
-func New(c rest.Config)*Client{
-    /// init and return a client
+/// New inits and returns a client
+func New(c ClientConfig)*Client{
+    return &amp;amp;Client{
+        config: c,
+    }
 }
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -147,7 +141,7 @@ func New(c rest.Config)*Client{
 package mywebsite
 
 import(
-    &amp;quot;github.com/someone/client&amp;quot;
+    &amp;quot;github.com/someone/client&amp;quot; //Only one import now
 )
 
 type clientConfig struct{ }
@@ -160,6 +154,7 @@ func (cc clientConfig)Port()int32{
     return 3000
 }
 
+// Consumer can now define an interface that our struct fulfills but that only has one method.
 type Client interface{
     DoSomething()error 
 }
@@ -199,12 +194,14 @@ func TestSomeFunc(t *testing.T){
 
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;The boiler plate in the test is vastly reduced as only one method had to be mocked rather than three.&lt;/p&gt;
+&lt;p&gt;The boiler plate in the test is vastly reduced as only one method had to be mocked rather than three.
+Hopefully I have shown the benefit of accepting interfaces and returning structs here and it will inspire you to
+make use of this pattern in your own code.&lt;/p&gt;
 </description>
     </item>
     
     <item>
-      <title>idiomatic go tests</title>
+      <title>Idiomatic go tests</title>
       <link>http://idiomaticgo.com/post/testing/idiomatic-go-tests/</link>
       <pubDate>Sun, 16 Oct 2016 10:20:44 +0100</pubDate>
       
