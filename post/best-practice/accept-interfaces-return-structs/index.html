@@ -90,9 +90,9 @@ easier to write tests for their code that depend on your package. Lets look at s
 <pre><code class="language-go">
 package rest
 
-type Config struct{
-    Host string 
-    Port int32
+type Config struct {
+	Host string
+	Port int32
 }
 
 </code></pre>
@@ -102,14 +102,14 @@ package client
 
 import &quot;github.com/someone/rest&quot;
 
-type Client interface{
-    DoSomething()error
-    DoSomethingMore()error
-    ThisIsDoingSomething()error
+type Client interface {
+	DoSomething() error
+	DoSomethingMore() error
+	ThisIsDoingSomething() error
 }
 
-func New(c rest.Config)Client{
-    /// init and return a client
+func New(c rest.Config) Client {
+	/// init and return a client
 }
 </code></pre>
 
@@ -124,17 +124,17 @@ import(
     &quot;github.com/someone/rest&quot;
 )
 
-func SomeFunc(c client.Client)error{
-    
-    return c.DoSomething()
+func SomeFunc(c client.Client) error {
+
+	return c.DoSomething()
 }
 
-func main (){
-    c := client.New(rest.Config{
-        Host:&quot;ahost&quot;,
-        Port:3000,
-    })
-    SomeFunc(c)
+func main() {
+	c := client.New(rest.Config{
+		Host: &quot;ahost&quot;,
+		Port: 3000,
+	})
+	SomeFunc(c)
 }
 </code></pre>
 
@@ -146,24 +146,24 @@ the consumer is now forced to implement every method on that interface rather th
 package mywebsite_test
 
 import &quot;github.com/me/mywebsite&quot; 
-
 type mockClient struct{}
+
 //notice we have to implement all the methods rather than just the one we use.
 
-func (mockClient)DoSomething()error{
-    return nil
+func (mockClient) DoSomething() error {
+	return nil
 }
-func (mockClient) DoSomethingMore()error{
-    return nil
+func (mockClient) DoSomethingMore() error {
+	return nil
 }
-func (mockClient)ThisIsDoingSomething()error{
-    return nil 
+func (mockClient) ThisIsDoingSomething() error {
+	return nil
 }
 
-func TestSomeFunc(t *testing.T){
-    if err := mywebsite.SomeFunc(mockClient{}); err != nil{
-        t.Errorf(&quot;did not expect an error but got %s &quot;, err.Error())
-    }
+func TestSomeFunc(t *testing.T) {
+	if err := mywebsite.SomeFunc(mockClient{}); err != nil {
+		t.Errorf(&quot;did not expect an error but got %s &quot;, err.Error())
+	}
 }
 
 </code></pre>
@@ -173,26 +173,27 @@ func TestSomeFunc(t *testing.T){
 <pre><code class="language-go">
 package client
 
-type ClientConfig interface{
-    Host()string 
-    Port()int32
+type ClientConfig interface {
+	Host() string
+	Port() int32
 }
 
-type Client struct{ 
-    config ClientConfig
+type Client struct {
+	config ClientConfig
 }
 
-func (c *Client)DoSomething()error{
-    //do some work ...
-    return nil 
+func (c *Client) DoSomething() error {
+	//do some work ...
+	return nil
 }
+
 //imagine more methods
 
 /// New inits and returns a client
-func New(c ClientConfig)*Client{
-    return &amp;Client{
-        config: c,
-    }
+func New(c ClientConfig) *Client {
+	return &amp;Client{
+		config: c,
+	}
 }
 </code></pre>
 
@@ -205,29 +206,29 @@ import(
     &quot;github.com/someone/client&quot; //Only one import now
 )
 
-type clientConfig struct{ }
+type clientConfig struct{}
 
-func (cc clientConfig)Host()string{
-    return &quot;ahost&quot;
+func (cc clientConfig) Host() string {
+	return &quot;ahost&quot;
 }
 
-func (cc clientConfig)Port()int32{
-    return 3000
+func (cc clientConfig) Port() int32 {
+	return 3000
 }
 
 // Consumer can now define an interface that our struct fulfills but that only has one method.
-type Client interface{
-    DoSomething()error 
+type Client interface {
+	DoSomething() error
 }
 
-func SomeFunc(c Client)error{
-    
-    return c.DoSomething()
+func SomeFunc(c Client) error {
+
+	return c.DoSomething()
 }
 
-func main (){
-    c := client.New(&amp;clientConfig{})
-    SomeFunc(c)
+func main() {
+	c := client.New(&amp;clientConfig{})
+	SomeFunc(c)
 }
 </code></pre>
 
@@ -241,16 +242,17 @@ package mywebsite_test
 import &quot;github.com/me/mywebsite&quot; 
 
 type mockClient struct{}
+
 //notice we have to implement ONLY the method we use now.
 
-func (mockClient)DoSomething()error{
-    return nil
+func (mockClient) DoSomething() error {
+	return nil
 }
 
-func TestSomeFunc(t *testing.T){
-    if err := mywebsite.SomeFunc(mockClient{}); err != nil{
-        t.Errorf(&quot;did not expect an error but got %s &quot;, err.Error())
-    }
+func TestSomeFunc(t *testing.T) {
+	if err := mywebsite.SomeFunc(mockClient{}); err != nil {
+		t.Errorf(&quot;did not expect an error but got %s &quot;, err.Error())
+	}
 }
 
 </code></pre>
