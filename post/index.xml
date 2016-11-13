@@ -47,7 +47,7 @@ type Client interface{
     ThisIsDoingSomething()error
 }
 
-func NewClient(c rest.Config)Client{
+func New(c rest.Config)Client{
     /// init and return a client
 }
 &lt;/code&gt;&lt;/pre&gt;
@@ -69,7 +69,7 @@ func SomeFunc(c client.Client)error{
 }
 
 func main (){
-    c := client.NewClient(rest.Config{
+    c := client.New(rest.Config{
         Host:&amp;quot;ahost&amp;quot;,
         Port:3000,
     })
