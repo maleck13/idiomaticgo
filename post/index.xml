@@ -2,249 +2,358 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Post-rsses on Idiomatic Go</title>
-    <link>http://idiomaticgo.com/post/index.xml</link>
+    <link>http://replace-this-with-your-hugo-site.com/post/index.xml</link>
     <description>Recent content in Post-rsses on Idiomatic Go</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 02 Nov 2016 10:30:10 +0000</lastBuildDate>
-    <atom:link href="http://idiomaticgo.com/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 20 May 2017 18:35:18 +0100</lastBuildDate>
+    <atom:link href="http://replace-this-with-your-hugo-site.com/post/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>Accept interfaces return structs</title>
-      <link>http://idiomaticgo.com/post/best-practice/accept-interfaces-return-structs/</link>
-      <pubDate>Wed, 02 Nov 2016 10:30:10 +0000</pubDate>
+      <title>Server project layout</title>
+      <link>http://replace-this-with-your-hugo-site.com/post/best-practice/server-project-layout/</link>
+      <pubDate>Sat, 20 May 2017 18:35:18 +0100</pubDate>
       
-      <guid>http://idiomaticgo.com/post/best-practice/accept-interfaces-return-structs/</guid>
-      <description>&lt;p&gt;I have heard mentioned several times this idea of accepting interfaces and returning structs.
-Here I will try to outline why I think this is good practice.&lt;/p&gt;
+      <guid>http://replace-this-with-your-hugo-site.com/post/best-practice/server-project-layout/</guid>
+      <description>
 
-&lt;p&gt;When writing packages our goal is for them to be consumed by someone. Either by our own code, but also, hopefully, by others too.
-We want to make this as simple and frictionless as possible and avoid causing frustration for the consumers of our packages.
-Accepting interfaces and returning structs can be a powerful way to achieve this.
-It allows the consumers of our packages to reduce the coupling between their code and yours. It also makes it
-easier to write tests for their code that depend on your package. Lets look at some examples.&lt;/p&gt;
+&lt;p&gt;I have started many projects and finsished far less. One of the initial issues I found when moving to go was figuring out a good way to layout my projects. There are some good resources for helping with this:&lt;/p&gt;
 
-&lt;p&gt;First lets look at what happens when we accept a type specific to our package in the exposed API and then return an interface we have defined:&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://golang.org/doc/effective_go.html&#34;&gt;effective go&lt;/a&gt;&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-package rest
+&lt;p&gt;&lt;a href=&#34;https://golang.org/doc/code.html&#34;&gt;go code&lt;/a&gt;&lt;/p&gt;
 
-type Config struct{
-    Host string 
-    Port int32
-}
+&lt;p&gt;&lt;a href=&#34;http://howistart.org/posts/go/1/#a-new-project&#34;&gt;peter bourgon, how I start&lt;/a&gt;&lt;/p&gt;
 
+&lt;p&gt;&lt;a href=&#34;https://medium.com/@benbjohnson/standard-package-layout-7cdbc8391fc1&#34;&gt;Ben Johnson Standard Package Layout&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;I have leaned heavilly on these. However I still found myself struggling with finding the right structure. Particularly around areas such as where should my types go and what about my interfaces. So in this post I will give you my take on a what I believe works well particulalry with API server projects as these are the type of project I regularly work on.&lt;/p&gt;
+
+&lt;p&gt;Before I start, I should be clear that this is not meant as authorative it is merely an attempt to share what I have learned. I have no doubt I will iterate further.&lt;/p&gt;
+
+&lt;h2 id=&#34;server-applications-are-like-onions-onions-have-layers-applications-have-layers&#34;&gt;Server applications are like onions, onions have layers applications have layers.&lt;/h2&gt;
+
+&lt;p&gt;Over the years, I have tried various layouts of projects. Back when MVC was all the rage, I often would layout my projects as follows:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;mvc
+├── controllers
+├── models
+└── views
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-package client
+&lt;p&gt;Sometimes I wouldn&amp;rsquo;t have a choice as the scaffold of a framework would lay it out for me. But this is deeply unsatisfying. It tells us very little about the application and a whole lot about the architecture we picked.&lt;/p&gt;
 
-import &amp;quot;github.com/someone/rest&amp;quot;
+&lt;p&gt;After reading the above articles and going through a number of iterations while learning about &lt;a href=&#34;http://alistair.cockburn.us/Hexagonal+architecture&#34;&gt;hexagonal&lt;/a&gt; and &lt;a href=&#34;http://jeffreypalermo.com/blog/the-onion-architecture-part-1/&#34;&gt;onion architecture&lt;/a&gt; along with Domain Driven Design, the following is what I have settled on for now. I will show it now and explain it further afterwards. I am using a shop as an example to avoid niche applications.&lt;/p&gt;
 
-type Client interface{
-    DoSomething()error
-    DoSomethingMore()error
-    ThisIsDoingSomething()error
-}
-
-func New(c rest.Config)Client{
-    /// init and return a client
-}
+&lt;pre&gt;&lt;code&gt;onion/
+├── cmd # cmd is for our binaries and artefacts. It is al
+│   ├── onionctl
+│   │   └── main.go #setup and dependency injection
+│   └── server
+│       └── main.go #setup and dependency injection
+└── pkg
+    ├── database # database is an infrastructure dependency not part of the core buisiness logic
+    │   └── orderRepository.go
+    │   └── customerRepository.go
+    │   └── ...
+    ├── shop #shop is our core business domain
+    │   ├── customer #customer is a distinct subdomain
+    │   │   └── service.go #Domain Service
+    │   │   └── ...    
+    │   ├── catalog #catalog is a distinct subdomain
+    │   │   └── search.go #Domain Service
+    │   │   └── ...        
+    │   ├── orders #orders is a distinct subdomain
+    │   │   └── dispatch.go
+    │   │   └── ...            
+    │   └── placeOrder.go  #Application Services or use cases. Bringing suddomains together.      
+    │   ├── interfaces.go #holds the interfaces defined as part of our buisness logic, these are implemented by the outer layers (repositories, filehandling, external dependencies and services.)
+    │   └── types.go #types holds our domain model
+    └── web # web like database is another external dependency
+        ├── catalog.go
+        ├── orders.go
+        └── router.go
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;You could argue that the config and the client should be in the same package and you would probably be right, but this is just a contrived example to illustrate the point.
-Now someone consuming our code has to do some extra work when testing and also rely on not only the &lt;code&gt;client&lt;/code&gt; package but also the &lt;code&gt;rest&lt;/code&gt; package.&lt;/p&gt;
+&lt;p&gt;We clearly have an onion shop here. Shop is our core package and it contains multiple subdomains that are all related to the purpose of our application. Everything outside of the shop package, is an outer layer it is either a delivery mechanism (the web) or a dependency (the database).&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-package mywebsite
+&lt;p&gt;One of the key principals of Onion architecture, is that inner layers cannot directly depend on outer layers. This prevents our business logic being coupled to dependencies and delivery mechanisms such as the web or the database.
+Lets walk through the layers and see where they sit.&lt;/p&gt;
 
-import(
-    &amp;quot;github.com/someone/client&amp;quot;
-    &amp;quot;github.com/someone/rest&amp;quot;
-)
+&lt;h2 id=&#34;domain-model&#34;&gt;Domain Model&lt;/h2&gt;
 
-func SomeFunc(c client.Client)error{
-    
-    return c.DoSomething()
-}
+&lt;p&gt;The center of our onion is our shop business domain models. I tend to keep these collected in a file called &lt;code&gt;types.go&lt;/code&gt; . This is something I took from studying the OpenShift and Kubernetes code base. This layer has no dependencies on any other layer. I keep it at the root of the core domain as many of subdomain will likely need to make use of these domain objects and this will avoid circular dependencies. It also keeps the stutter down as creating these models will look like:&lt;/p&gt;
 
-func main (){
-    c := client.New(rest.Config{
-        Host:&amp;quot;ahost&amp;quot;,
-        Port:3000,
-    })
-    SomeFunc(c)
-}
-&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;shop.NewCustomer()&lt;/code&gt;&lt;/p&gt;
 
-&lt;p&gt;So we mentioned how this pattern effect tests. How does this effect tests? Well because we returned an interface that we defined,
-the consumer is now forced to implement every method on that interface rather than just the ones they care about:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;shop.NewOrder()&lt;/code&gt;&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//test my service with a mock client 
+&lt;ul&gt;
+&lt;li&gt;layer: 1&lt;/li&gt;
+&lt;li&gt;Can Depend On: Nothing&lt;/li&gt;
+&lt;/ul&gt;
 
-package mywebsite_test
+&lt;h2 id=&#34;domain-services&#34;&gt;Domain Services&lt;/h2&gt;
 
-import &amp;quot;github.com/me/mywebsite&amp;quot; 
+&lt;p&gt;Our domain services are the core business logic that act on the domain model. In this case it is the &lt;code&gt;customer&lt;/code&gt; , &lt;code&gt;orders&lt;/code&gt; and &lt;code&gt;catalog&lt;/code&gt; packages. They are standalone and do not depend on other domain packages. It is also this layer that defines the interfaces it requires to fulfill its logic. I am experimenting with keeping these interfaces in a file called &lt;code&gt;interfaces.go&lt;/code&gt; at the root of the core domain as these are also likely to be used across the different subdomains. These interfaces are often fullfiled by the infrastructure layer.&lt;/p&gt;
 
-type mockClient struct{}
-//notice we have to implement all the methods rather than just the one we use.
+&lt;ul&gt;
+&lt;li&gt;layer: 2&lt;/li&gt;
+&lt;li&gt;Can Depend On: Domain Model&lt;/li&gt;
+&lt;/ul&gt;
 
-func (mockClient)DoSomething()error{
-    return nil
-}
-func (mockClient) DoSomethingMore()error{
-    return nil
-}
-func (mockClient)ThisIsDoingSomething()error{
-    return nil 
-}
+&lt;h2 id=&#34;application-services&#34;&gt;Application Services&lt;/h2&gt;
 
-func TestSomeFunc(t *testing.T){
-    if err := mywebsite.SomeFunc(mockClient{}); err != nil{
-        t.Errorf(&amp;quot;did not expect an error but got %s &amp;quot;, err.Error())
-    }
-}
+&lt;p&gt;Application services orchastrate use cases of the application between the different domain services. They are used by the user interface layer to interact with the domain. So in our case, we have a place order use case that would probably use the &lt;code&gt;customer&lt;/code&gt; domain service, and the &lt;code&gt;orders&lt;/code&gt; domain service in order to fulfill the use case.
+They should not have business logic. Their responsibility is to orchestrate the flow of data between the different subdomains. If you don&amp;rsquo;t have multiple domains then it is likely you could just use the domain service directly at that point.&lt;/p&gt;
 
-&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;layer: 3&lt;/li&gt;
+&lt;li&gt;Can Depend On: Domain Services and Domain Model&lt;/li&gt;
+&lt;/ul&gt;
 
-&lt;p&gt;Now lets change our implementation to accept intefaces and return structs.&lt;/p&gt;
+&lt;h2 id=&#34;infrastructure&#34;&gt;Infrastructure&lt;/h2&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-package client
+&lt;p&gt;Infrastructure is made up of our dependencies and integrations: the database, external services such as payment gateways. They are dependencies which our business domain does not care about. This layer implements the interfaces defined by the domain services and it can depend on internal layers such as the domain model.&lt;/p&gt;
 
-type ClientConfig interface{
-    Host()string 
-    Port()int32
-}
+&lt;ul&gt;
+&lt;li&gt;layer: 4&lt;/li&gt;
+&lt;li&gt;Can Depend On: Application Services, Domain Services and Domain Model&lt;/li&gt;
+&lt;/ul&gt;
 
-type Client struct{ 
-    config ClientConfig
-}
+&lt;h2 id=&#34;user-interfaces&#34;&gt;User Interfaces&lt;/h2&gt;
 
-func (c *Client)DoSomething()error{
-    //do some work ...
-    return nil 
-}
-//imagine more methods
+&lt;p&gt;User interfaces are also an external layer. They make up ways that out app can be interacted with. The web / http is a good example of one of these. All the web based logic lives in the web package, including things like setting up routes, middleware and handlers. Another good example is tests. In go we generally keep our tests along side our code. They represent another interface.&lt;/p&gt;
 
-/// New inits and returns a client
-func New(c ClientConfig)*Client{
-    return &amp;amp;Client{
-        config: c,
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;layer: 4&lt;/li&gt;
+&lt;li&gt;Can Depend On: Application Services, Domain Services and Domain Model&lt;/li&gt;
+&lt;/ul&gt;
 
-&lt;p&gt;So now our implementation has changed lets see the impact we have on the consumers of our code.&lt;/p&gt;
+&lt;h2 id=&#34;how-does-this-help-with-testing&#34;&gt;How does this help with testing?&lt;/h2&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
-package mywebsite
+&lt;p&gt;Laying out our project using this method, ensures that our business logic is isolated from everything else. This means that we can have a solid suite of unit tests for the business logic, that mock out any required interfaces and focus on testing the core business logic.&lt;/p&gt;
 
-import(
-    &amp;quot;github.com/someone/client&amp;quot; //Only one import now
-)
+&lt;p&gt;We should have tests at each of the layers, but the greatest coverage and number of tests should be at the center reducing as we move up the layers. This will give us a something like the testing pyramid outlined in a popular &lt;a href=&#34;https://testing.googleblog.com/2015/04/just-say-no-to-more-end-to-end-tests.html&#34;&gt;Google testing article&lt;/a&gt;&lt;/p&gt;
 
-type clientConfig struct{ }
+&lt;h2 id=&#34;advantages-for-if-you-want-to-move-to-microservices&#34;&gt;Advantages for if you want to move to microservices&lt;/h2&gt;
 
-func (cc clientConfig)Host()string{
-    return &amp;quot;ahost&amp;quot;
-}
+&lt;p&gt;When building out a project, you may not initially want to go straight to microservices. My hope would be that if you built out your project as I have outlined, it would be much easier to split out part of the application into a new service.
+For example, if you wanted to move out the customer domain, as it is isolated, you could take that code and put into a new web service: you would need to redefine the model and interfaces, but it wouldn&amp;rsquo;t be very difficult. As you have not tied this subdomain to any of the others you would not need to spend huge amounts of time untangling them. If your tests are part of the your package, they would also be brought over and once you have redefined your models and interfaces, they should pass again.&lt;/p&gt;
 
-func (cc clientConfig)Port()int32{
-    return 3000
-}
+&lt;h2 id=&#34;what-if-you-want-to-build-a-microservice&#34;&gt;What if you want to build a microservice?&lt;/h2&gt;
 
-// Consumer can now define an interface that our struct fulfills but that only has one method.
-type Client interface{
-    DoSomething()error 
-}
-
-func SomeFunc(c Client)error{
-    
-    return c.DoSomething()
-}
-
-func main (){
-    c := client.New(&amp;amp;clientConfig{})
-    SomeFunc(c)
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;So now there is only one import from our package reducing our footprint on the consumer&amp;rsquo;s code. But more importantly, because we returned a struct,
-the consumer of the code can define their own interface with just the methods they care about. Lets look at our test code now.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;//test my service with a mock client 
-
-package mywebsite_test
-
-import &amp;quot;github.com/me/mywebsite&amp;quot; 
-
-type mockClient struct{}
-//notice we have to implement ONLY the method we use now.
-
-func (mockClient)DoSomething()error{
-    return nil
-}
-
-func TestSomeFunc(t *testing.T){
-    if err := mywebsite.SomeFunc(mockClient{}); err != nil{
-        t.Errorf(&amp;quot;did not expect an error but got %s &amp;quot;, err.Error())
-    }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;The boiler plate in the test is vastly reduced as only one method had to be mocked rather than three.
-Hopefully I have shown the benefit of accepting interfaces and returning structs here and it will inspire you to
-make use of this pattern in your own code.&lt;/p&gt;
+&lt;p&gt;These is nothing in this approach that cannot be used for microservices. However if your microservice has only a single responsibility, this would translate to a single domain. With only one domain you likely do not need the application service or use case layer.&lt;/p&gt;
 </description>
     </item>
     
     <item>
-      <title>Idiomatic go tests</title>
-      <link>http://idiomaticgo.com/post/testing/idiomatic-go-tests/</link>
+      <title>Accept interfaces return concrete types</title>
+      <link>http://replace-this-with-your-hugo-site.com/post/best-practice/accept-interfaces-return-structs/</link>
+      <pubDate>Wed, 02 Nov 2016 10:30:10 +0000</pubDate>
+      
+      <guid>http://replace-this-with-your-hugo-site.com/post/best-practice/accept-interfaces-return-structs/</guid>
+      <description>
+
+&lt;p&gt;&lt;strong&gt;Note this post was edited after taking on board feedback from &lt;a href=&#34;https://www.reddit.com/r/golang/comments/5cos3x/accept_interfaces_return_structs/&#34;&gt;reddit discussion&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;I have heard mentioned several times this idea of accepting interfaces and returning concrete types.
+Here I will try to outline why I think this is good practice. It is important to note that this is intended as a principal to keep in mind when writing
+Go code, rather than an absolute rule.&lt;/p&gt;
+
+&lt;p&gt;When writing libraries and packages our goal is for them to be consumed by someone. Either by our own code, but also, hopefully, by others too.
+We want to make this as simple and frictionless as possible.
+Accepting interfaces and returning structs can be a powerful way to achieve this. It allows the consumers of our packages to reduce the coupling between their code and yours. It helps clearly define the contract between API and the consumer,
+it makes it easier when consumers of your code are writing tests for the code that depends on your package.
+Lets look at some examples to help illustrate.&lt;/p&gt;
+
+&lt;h3 id=&#34;accepting-interfaces&#34;&gt;Accepting Interfaces&lt;/h3&gt;
+
+&lt;p&gt;Accepting a concrete type can limit the uses or our API and also cause difficulty for consumers of our code when it comes to testing. For example, if the public API of our library or package were to accept the concrete type &lt;code&gt;*os.File&lt;/code&gt;  instead
+of the &lt;code&gt;io.Writer&lt;/code&gt; interface, it would force consumers to use the same types in order to use our API. Now if we were instead to accept an interface, it would ensure that the requirements of our API
+are met, while not forcing a concrete type on the consumer.&lt;/p&gt;
+
+&lt;p&gt;Below is a contrived, simple example, but it is something you can often hit in real world code.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Using a concrete type&lt;/em&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package myapi
+
+import &amp;quot;os&amp;quot;
+
+type MyWriter struct {}
+
+func (mw *MyWriter) UpdateSomething(f *os.File) error {
+	//code using the file to write ...
+	return nil
+}
+
+func New() *MyWriter {
+	return &amp;amp;MyWriterApi{}
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So we mentioned how this pattern effect the consumers of our API. Lets look at how the above API would be consumed and tested:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;  package myconsumer 
+
+  import (
+      &amp;quot;github.com/someone/myapi&amp;quot;
+  )
+
+  func UseMyApi(doer *myapi.MyWriter, f *os.File)error{
+      //do awesome business logic
+      return doer.UpdateSomething(f)
+  }
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;In our application code, at first, this seems ok as long as we only need to use files with this API. The difficulty shows itself best when we implement a test.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;  package myconsumer_test 
+
+  import (
+      &amp;quot;github.com/someone/myconsumer&amp;quot;
+      &amp;quot;os&amp;quot;
+  )
+
+  type mockDoer struct{}
+  func (md mockDoer)UpdateSomething(f *os.File)error{
+      return nil
+  }
+
+  func TestUseMyApi(t *testing.T){
+
+      //we now need to get a concrete implementation of  *os.File somehow to use with our test.
+      f,err := os.Open(&amp;quot;/some/path/to/fixture/file.txt&amp;quot;)
+      if err != nil{
+          t.Fatalf(&amp;quot;failed to open file for test %s&amp;quot;,err.Error())
+      }
+      defer f.Close()
+      if err := myconsumer.UseMyApi(mockDoer{},f); err != nil{
+          t.Errorf(&amp;quot;did not expect error calling UseMyApi but got %s &amp;quot;, err.Error())
+      }
+       
+  }
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;As the API implementation can only accept a concret &lt;code&gt;*os.File&lt;/code&gt; we are now forced to use a real file in our test.
+So how dow we solve this problem and make our API better for its consumers?&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Accepting an interface&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Back to API code:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;
+package myapi
+
+import &amp;quot;io&amp;quot;
+
+
+type MyWriter struct {}
+
+#Swithing from an io.File to an io.Writer makes things far easer for the consumer.
+func (mw *myWriter) UpdateSomething(w io.Writer) error {
+	//code using the writer to write ...
+	return nil
+}
+
+func New() *MyWriter {
+	return &amp;amp;MyWriterApi{}
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now our implementation takes anything that implements the builtin &lt;code&gt;io.Writer&lt;/code&gt; interface. Although
+we are using a builtin interface here, in code, within specific business domains, this could well be a custom interface
+expressing the concerns of your domain. So how does this change impact our test code?&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;  package myconsumer_test 
+
+  import (
+      &amp;quot;github.com/someone/myconsumer&amp;quot;
+      &amp;quot;io&amp;quot;
+      &amp;quot;bytes&amp;quot;
+  )
+
+  type mockDoer struct{}
+  func (md mockDoer)UpdateSomething(w io.Writer)error{
+      return nil
+  }
+
+  func TestUseMyApi(t *testing.T){
+
+      //we no longer need an actual file, all we need is something that 
+      //implements the write method from io.Writer. bytes.Buffer is one such type.
+      var b bytes.Buffer
+    
+      if err := myconsumer.UseMyApi(mockDoer{},&amp;amp;b); err != nil{
+          t.Errorf(&amp;quot;did not expect error calling UseMyApi but got %s &amp;quot;, err.Error())
+      }
+       
+  }
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Another advantage here is that if our UseMyApi function, also writes using the writer, we can assert based on the contents of the bytes.Buffer.&lt;/p&gt;
+
+&lt;h4 id=&#34;reducing-our-footprint-and-coupling&#34;&gt;Reducing our footprint and coupling&lt;/h4&gt;
+
+&lt;p&gt;Our libraries may use other libraries for some of its functionality. In our public API we should avoid exposing third party types to the consumers of our API. If our public API exposes a 3rd party type, then our consumers will also need to import and use that third party type. This couples there code to a dependency of your code and means they need to know too much about how the innards of your API works. It is a leaky abstraction. To avoid this we should either define our own types that internally can be translated to the required type or define and accept an interface.&lt;/p&gt;
+
+&lt;h3 id=&#34;returning-concrete-types&#34;&gt;Returning Concrete Types&lt;/h3&gt;
+
+&lt;p&gt;So what are the advantages of returning concrete types? If we want to accept interfaces, why would we not also return interfaces?&lt;/p&gt;
+
+&lt;p&gt;Navigating to the implementation code of a returned type, is something that you will often do when using a library even if it is only to get a better understanding of how something works. Returning an interface makes this far more difficult for the consumer as they will first navigate to an interface definition and then need to spend additional time trying to find the implementation code.
+Consumers of our code, my only be interested in a small subset of the functionality, while returning an interface doesn&amp;rsquo;t stop them from defining a new interface, nor does returning a concrete type. So given the uneeded indirection a returned interface will cause, it makes more sense and reduces friction to return a concrete type.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>idiomatic go tests</title>
+      <link>http://replace-this-with-your-hugo-site.com/post/testing/idiomatic-go-tests/</link>
       <pubDate>Sun, 16 Oct 2016 10:20:44 +0100</pubDate>
       
-      <guid>http://idiomaticgo.com/post/testing/idiomatic-go-tests/</guid>
+      <guid>http://replace-this-with-your-hugo-site.com/post/testing/idiomatic-go-tests/</guid>
       <description>
 
 &lt;p&gt;What does it mean to write idiomatic go tests? I will outline what it means to me and try to convey through details and examples what I wish I had known when starting out with Go.&lt;/p&gt;
 
 &lt;h3 id=&#34;idiomatic-go-tests-are-written-using-the-builtin-testing-package&#34;&gt;Idiomatic go tests are written using the builtin testing package&lt;/h3&gt;
 
-&lt;p&gt;Go comes with a builtin &lt;a href=&#34;https://golang.org/pkg/testing/&#34;&gt;testing&lt;/a&gt; package. There is no need for an external testing package. Although these do exist and it is not for me to say you shouldn&amp;rsquo;t use them.
-However I would encourage writing tests using the builtin testing package, and only when you begin to feel it is failing you somehow, look at what external packages can offer.&lt;/p&gt;
+&lt;p&gt;Go comes with a builtin &lt;a href=&#34;https://golang.org/pkg/testing/&#34;&gt;testing&lt;/a&gt; package. There is no need for an external testing package. Although these do exist and it is not for me to say you shouldn’t use them. However I would encourage writing tests using the builtin testing package, and only when you begin to feel it is failing you somehow, look at what external packages can offer.&lt;/p&gt;
 
 &lt;p&gt;Tests in a Go program are normally defined along with the source code for the package. Notice below that the test file is named &lt;code&gt;*_test.go&lt;/code&gt; Go expects your tests to be named this way.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;myPkg
 ├── repo.go
 ├── repo_test.go
-
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;The testing package is built to be used with the &lt;code&gt;go test&lt;/code&gt; command. It looks for tests that are defined in the following way:&lt;/p&gt;
+&lt;p&gt;The testing package is built to be used with the go test command. It looks for tests that are defined in the following way:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;func TestXxx(*testing.T)
+&lt;pre&gt;&lt;code&gt;func TestXxx(*testing.T)
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Lets look at a very simple example the first file is &lt;code&gt;sum.go&lt;/code&gt; and the second file &lt;code&gt;sum_test.go&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;Lets look at a very simple example the first file is sum.go and the second file sum_test.go:&lt;/p&gt;
 
 &lt;p&gt;&lt;code&gt;sum.go&lt;/code&gt;&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package myPkg  
+&lt;pre&gt;&lt;code&gt;package myPkg  
 
 Sum(a,b int)int{
     return a + b
 }
-
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Next we have our test for this package. Things to notice here include the package name and the test name:&lt;/p&gt;
 
 &lt;p&gt;&lt;code&gt;sum_test.go&lt;/code&gt;&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package myPkg_test //notice we name it _test this allows us to work only with the exported api of our package.
+&lt;pre&gt;&lt;code&gt;package myPkg_test //notice we name it _test this allows us to work only with the exported api of our package.
 
 import &amp;quot;testing&amp;quot;
 import &amp;quot;github.com/maleck13/myPkg&amp;quot;
@@ -260,21 +369,24 @@ func TestSum(t *testing.T){
 &lt;p&gt;Somethings worth pointing out:&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;p&gt;In our test the package name is &lt;code&gt;package_test&lt;/code&gt; this is a convention in Go. It allows the test file to be in the same package as the source code, but only have access to the
-exported types, and functions etc.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;in our test the package name is &lt;code&gt;package_test&lt;/code&gt; this is a convention in Go. It allows the test file to be in the same package as the source code, but only have access to the exported types, and functions etc.&lt;/p&gt;&lt;/li&gt;
 
-&lt;li&gt;&lt;p&gt;Notice that in our test, we do not have an inbuilt assert. Read the code again, notice that there is very little different
-in how our test code reads compared with our business logic code, it is just more Go code. This is intentional. It may mean you write a few more lines of code,
-but has the advantage of allowing anyone who knows Go to be able to read and modify your test code without the overhead of
-learning a testing DSL.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Notice that in our test, we do not have an inbuilt assert. Read the code again, notice that there is very little different in how our test code reads compared with our business logic code, it is just more Go code. This is intentional. It may mean you write a few more lines of code, but has the advantage of allowing anyone who knows Go to be able to read and modify your test code without the overhead of learning a testing DSL.&lt;/p&gt;&lt;/li&gt;
 &lt;/ul&gt;
+
+&lt;h3 id=&#34;running-tests&#34;&gt;Running Tests&lt;/h3&gt;
+
+&lt;p&gt;You can run tests using the builtin &lt;code&gt;go test&lt;/code&gt; command.
+There are some very useful features in this command. To get package level coverage reports run &lt;code&gt;go test -cover&lt;/code&gt;
+To test for race conditions you can add the &lt;code&gt;-race&lt;/code&gt; flag.
+To run a single test you can use the &lt;code&gt;-run&lt;/code&gt; flag that takes a regular expression. For example &lt;code&gt;go test -run ^TestSum$&lt;/code&gt;.
+Using &lt;code&gt;go test -h&lt;/code&gt; will show you the wide set of options available.&lt;/p&gt;
 
 &lt;h3 id=&#34;mocks-and-stubs&#34;&gt;Mocks and Stubs&lt;/h3&gt;
 
-&lt;p&gt;Mocks are used frequently in Go tests. The most common way you will see a mock used is to provide a different implementation of a required interface. Mocks can be stored anywhere in your test code, but often they would be stored
-under a mock or test package.  Lets look at an example of mocking in Go.&lt;/p&gt;
+&lt;p&gt;Mocks are used frequently in Go tests. The most common way you will see a mock used is to provide a different implementation of a required interface. Mocks can be stored anywhere in your test code, but often they would be stored under a mock or test package. Lets look at an example of mocking in Go.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package mything
+&lt;pre&gt;&lt;code&gt;package mything
 
 type Doer interface{
     Do()error 
@@ -289,7 +401,7 @@ func BusinessDoer (d Doer)error{
 
 &lt;p&gt;And now our test file:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package mything_test 
+&lt;pre&gt;&lt;code&gt;package mything_test 
 
 import mything
 
@@ -309,22 +421,15 @@ func TestBusinessDoer(t *testing.T){
         t.Fatalf(&amp;quot;did not expect an error but got %s&amp;quot;,err.Error())
     }
 }
-
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;So in our test we have swapped out the original implementation of the Doer interface for our own implementation that we can easily
-control the behaviour of. It is important that if you want to unit test your code, that you express the dependencies used by that piece of code
-as an interface as this will allow for simple mocking. It is also a good reason to aim to keep your interfaces small. The smaller the interface the
-less work it is to mock out.&lt;/p&gt;
+&lt;p&gt;So in our test we have swapped out the original implementation of the Doer interface for our own implementation that we can easily control the behaviour of. It is important that if you want to unit test your code, that you express the dependencies used by that piece of code as an interface as this will allow for simple mocking. It is also a good reason to aim to keep your interfaces small. The smaller the interface the less work it is to mock out.&lt;/p&gt;
 
 &lt;h3 id=&#34;table-driven-tests&#34;&gt;Table driven tests&lt;/h3&gt;
 
-&lt;p&gt;In the above example we defined a test that tested some business logic for one case where the business logic
-does not return an error. Normally we would also want to at least test one other case, the case where the the dependency does
-return an error. Now we could define a new test entirely for this, however often in Go code you will see an approach for this called table testing.
-Lets look at an example that expands on the first example.&lt;/p&gt;
+&lt;p&gt;In the above example we defined a test that tested some business logic for one case where the business logic does not return an error. Normally we would also want to at least test one other case, the case where the the dependency does return an error. Now we could define a new test entirely for this, however often in Go code you will see an approach for this called table testing. Lets look at an example that expands on the first example.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package mything
+&lt;pre&gt;&lt;code&gt;package mything
 
 type Doer interface{
     Do()error 
@@ -334,12 +439,11 @@ func BusinessDoer (d Doer)error{
     //some business logic 
     return d.Do()
 }
-
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;And now our test file:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-go&#34;&gt;package mything_test 
+&lt;pre&gt;&lt;code&gt;package mything_test 
 
 import mything
 
@@ -384,15 +488,11 @@ func TestBusinessDoer(t *testing.T){
         })
     }
 }
-
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;So now we are defining a set of test cases in a slice. We are defining some inputs and expected behaviour. Then we are ranging over each of these
-tests cases and running them in a separate sub test. Sub tests allow us to re run a single failing test case rather than them all. In the above case if
-you wanted to run the sub test &lt;code&gt;test fails when dependency errors&lt;/code&gt; you would do so by running the following command from within the package.&lt;/p&gt;
+&lt;p&gt;So now we are defining a set of test cases in a slice. We are defining some inputs and expected behaviour. Then we are ranging over each of these tests cases and running them in a separate sub test. Sub tests allow us to re run a single failing test case rather than them all. In the above case if you wanted to run the sub test you would do so by running the following command from within the package.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;go test -run TestBusinessDoer/test_fails_when_dependency_errors
-
 &lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>

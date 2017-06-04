@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Server project layout &middot; Craig Brookes</title>
+        <meta name="description" content="Outlines how I like to setup a new server project allowing for clean separation of concerns, thourough testing and low cost of change">
+        <meta name="HandheldFriendly" content="True">
+        <meta name="MobileOptimized" content="320">
+        <meta name="generator" content="Hugo 0.17" />
+        <meta name="robots" content="index,follow">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <link rel="stylesheet" href="http://replace-this-with-your-hugo-site.com/css/normalize.css">
+        <link rel="stylesheet" href="http://replace-this-with-your-hugo-site.com/css/highlight.css">
+        <link rel="stylesheet" href="http://replace-this-with-your-hugo-site.com/css/style.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,400,600,700,300&subset=latin,cyrillic-ext,latin-ext,cyrillic">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    </head>
+    <body>
+        
+
+        <div id="wrapper">
+            <header class="site-header">
+                <div class="container">
+                    <div class="site-title-wrapper">
+                        
+                            <h1 class="site-title">
+                                <a title="Idiomatic Go" href="http://replace-this-with-your-hugo-site.com/">Idiomatic Go</a>
+                            </h1>
+                        
+                        <a class="button-square" href="http://replace-this-with-your-hugo-site.com/index.xml"><i class="fa fa-rss"></i></a>
+                        
+                        
+                        
+                        
+                        
+                        
+                    </div>
+
+                    <ul class="site-nav">
+                        
+                    </ul>
+                </div>
+            </header>
+
+            <div id="container">
+
+
+<div class="container">
+    <article class="post-container" itemscope="" itemtype="http://schema.org/BlogPosting">
+        <header class="post-header">
+    <h1 class="post-title" itemprop="name headline">Server project layout</h1>
+    
+        <p class="post-description" itemprop="description">Outlines how I like to setup a new server project allowing for clean separation of concerns, thourough testing and low cost of change</p>
+    
+    <p class="post-date">
+        <span>Published <time datetime="2017-05-20" itemprop="datePublished">Sat, May 20, 2017</time></span>
+        <span>by</span>
+        <span itemscope="" itemprop="author" itemtype="http://schema.org/Person">
+            <span itemprop="name">
+                <a href="https://github.com/maleck13" itemprop="url" rel="author">Craig Brookes</a>
+            </span>
+        </span>
+    </p>
+</header>
+
+        <div class="post-content clearfix" itemprop="articleBody">
+    
+
+    
+
+<p>I have started many projects and finsished far less. One of the initial issues I found when moving to go was figuring out a good way to layout my projects. There are some good resources for helping with this:</p>
+
+<p><a href="https://golang.org/doc/effective_go.html">effective go</a></p>
+
+<p><a href="https://golang.org/doc/code.html">go code</a></p>
+
+<p><a href="http://howistart.org/posts/go/1/#a-new-project">peter bourgon, how I start</a></p>
+
+<p><a href="https://medium.com/@benbjohnson/standard-package-layout-7cdbc8391fc1">Ben Johnson Standard Package Layout</a></p>
+
+<p>I have leaned heavilly on these. However I still found myself struggling with finding the right structure. Particularly around areas such as where should my types go and what about my interfaces. So in this post I will give you my take on a what I believe works well particulalry with API server projects as these are the type of project I regularly work on.</p>
+
+<p>Before I start, I should be clear that this is not meant as authorative it is merely an attempt to share what I have learned. I have no doubt I will iterate further.</p>
+
+<h2 id="server-applications-are-like-onions-onions-have-layers-applications-have-layers">Server applications are like onions, onions have layers applications have layers.</h2>
+
+<p>Over the years, I have tried various layouts of projects. Back when MVC was all the rage, I often would layout my projects as follows:</p>
+
+<pre><code>mvc
+├── controllers
+├── models
+└── views
+</code></pre>
+
+<p>Sometimes I wouldn&rsquo;t have a choice as the scaffold of a framework would lay it out for me. But this is deeply unsatisfying. It tells us very little about the application and a whole lot about the architecture we picked.</p>
+
+<p>After reading the above articles and going through a number of iterations while learning about <a href="http://alistair.cockburn.us/Hexagonal+architecture">hexagonal</a> and <a href="http://jeffreypalermo.com/blog/the-onion-architecture-part-1/">onion architecture</a> along with Domain Driven Design, the following is what I have settled on for now. I will show it now and explain it further afterwards. I am using a shop as an example to avoid niche applications.</p>
+
+<pre><code>onion/
+├── cmd # cmd is for our binaries and artefacts. It is al
+│   ├── onionctl
+│   │   └── main.go #setup and dependency injection
+│   └── server
+│       └── main.go #setup and dependency injection
+└── pkg
+    ├── database # database is an infrastructure dependency not part of the core buisiness logic
+    │   └── orderRepository.go
+    │   └── customerRepository.go
+    │   └── ...
+    ├── shop #shop is our core business domain
+    │   ├── customer #customer is a distinct subdomain
+    │   │   └── service.go #Domain Service
+    │   │   └── ...    
+    │   ├── catalog #catalog is a distinct subdomain
+    │   │   └── search.go #Domain Service
+    │   │   └── ...        
+    │   ├── orders #orders is a distinct subdomain
+    │   │   └── dispatch.go
+    │   │   └── ...            
+    │   └── placeOrder.go  #Application Services or use cases. Bringing suddomains together.      
+    │   ├── interfaces.go #holds the interfaces defined as part of our buisness logic, these are implemented by the outer layers (repositories, filehandling, external dependencies and services.)
+    │   └── types.go #types holds our domain model
+    └── web # web like database is another external dependency
+        ├── catalog.go
+        ├── orders.go
+        └── router.go
+</code></pre>
+
+<p>We clearly have an onion shop here. Shop is our core package and it contains multiple subdomains that are all related to the purpose of our application. Everything outside of the shop package, is an outer layer it is either a delivery mechanism (the web) or a dependency (the database).</p>
+
+<p>One of the key principals of Onion architecture, is that inner layers cannot directly depend on outer layers. This prevents our business logic being coupled to dependencies and delivery mechanisms such as the web or the database.
+Lets walk through the layers and see where they sit.</p>
+
+<h2 id="domain-model">Domain Model</h2>
+
+<p>The center of our onion is our shop business domain models. I tend to keep these collected in a file called <code>types.go</code> . This is something I took from studying the OpenShift and Kubernetes code base. This layer has no dependencies on any other layer. I keep it at the root of the core domain as many of subdomain will likely need to make use of these domain objects and this will avoid circular dependencies. It also keeps the stutter down as creating these models will look like:</p>
+
+<p><code>shop.NewCustomer()</code></p>
+
+<p><code>shop.NewOrder()</code></p>
+
+<ul>
+<li>layer: 1</li>
+<li>Can Depend On: Nothing</li>
+</ul>
+
+<h2 id="domain-services">Domain Services</h2>
+
+<p>Our domain services are the core business logic that act on the domain model. In this case it is the <code>customer</code> , <code>orders</code> and <code>catalog</code> packages. They are standalone and do not depend on other domain packages. It is also this layer that defines the interfaces it requires to fulfill its logic. I am experimenting with keeping these interfaces in a file called <code>interfaces.go</code> at the root of the core domain as these are also likely to be used across the different subdomains. These interfaces are often fullfiled by the infrastructure layer.</p>
+
+<ul>
+<li>layer: 2</li>
+<li>Can Depend On: Domain Model</li>
+</ul>
+
+<h2 id="application-services">Application Services</h2>
+
+<p>Application services orchastrate use cases of the application between the different domain services. They are used by the user interface layer to interact with the domain. So in our case, we have a place order use case that would probably use the <code>customer</code> domain service, and the <code>orders</code> domain service in order to fulfill the use case.
+They should not have business logic. Their responsibility is to orchestrate the flow of data between the different subdomains. If you don&rsquo;t have multiple domains then it is likely you could just use the domain service directly at that point.</p>
+
+<ul>
+<li>layer: 3</li>
+<li>Can Depend On: Domain Services and Domain Model</li>
+</ul>
+
+<h2 id="infrastructure">Infrastructure</h2>
+
+<p>Infrastructure is made up of our dependencies and integrations: the database, external services such as payment gateways. They are dependencies which our business domain does not care about. This layer implements the interfaces defined by the domain services and it can depend on internal layers such as the domain model.</p>
+
+<ul>
+<li>layer: 4</li>
+<li>Can Depend On: Application Services, Domain Services and Domain Model</li>
+</ul>
+
+<h2 id="user-interfaces">User Interfaces</h2>
+
+<p>User interfaces are also an external layer. They make up ways that out app can be interacted with. The web / http is a good example of one of these. All the web based logic lives in the web package, including things like setting up routes, middleware and handlers. Another good example is tests. In go we generally keep our tests along side our code. They represent another interface.</p>
+
+<ul>
+<li>layer: 4</li>
+<li>Can Depend On: Application Services, Domain Services and Domain Model</li>
+</ul>
+
+<h2 id="how-does-this-help-with-testing">How does this help with testing?</h2>
+
+<p>Laying out our project using this method, ensures that our business logic is isolated from everything else. This means that we can have a solid suite of unit tests for the business logic, that mock out any required interfaces and focus on testing the core business logic.</p>
+
+<p>We should have tests at each of the layers, but the greatest coverage and number of tests should be at the center reducing as we move up the layers. This will give us a something like the testing pyramid outlined in a popular <a href="https://testing.googleblog.com/2015/04/just-say-no-to-more-end-to-end-tests.html">Google testing article</a></p>
+
+<h2 id="advantages-for-if-you-want-to-move-to-microservices">Advantages for if you want to move to microservices</h2>
+
+<p>When building out a project, you may not initially want to go straight to microservices. My hope would be that if you built out your project as I have outlined, it would be much easier to split out part of the application into a new service.
+For example, if you wanted to move out the customer domain, as it is isolated, you could take that code and put into a new web service: you would need to redefine the model and interfaces, but it wouldn&rsquo;t be very difficult. As you have not tied this subdomain to any of the others you would not need to spend huge amounts of time untangling them. If your tests are part of the your package, they would also be brought over and once you have redefined your models and interfaces, they should pass again.</p>
+
+<h2 id="what-if-you-want-to-build-a-microservice">What if you want to build a microservice?</h2>
+
+<p>These is nothing in this approach that cannot be used for microservices. However if your microservice has only a single responsibility, this would translate to a single domain. With only one domain you likely do not need the application service or use case layer.</p>
+
+</div>
+
+        <footer class="post-footer clearfix">
+    
+
+    <div class="share">
+        <a class="icon-twitter" href="http://twitter.com/share?text=Server%20project%20layout&url=http%3a%2f%2freplace-this-with-your-hugo-site.com%2fpost%2fbest-practice%2fserver-project-layout%2f"
+            onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+            <i class="fa fa-twitter"></i>
+            <span class="hidden">Twitter</span>
+        </a>
+
+        <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http%3a%2f%2freplace-this-with-your-hugo-site.com%2fpost%2fbest-practice%2fserver-project-layout%2f"
+            onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+            <i class="fa fa-facebook"></i>
+            <span class="hidden">Facebook</span>
+        </a>
+
+        <a class="icon-google-plus" href="https://plus.google.com/share?url=http%3a%2f%2freplace-this-with-your-hugo-site.com%2fpost%2fbest-practice%2fserver-project-layout%2f"
+           onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+           <i class="fa fa-google-plus"></i>
+            <span class="hidden">Google+</span>
+        </a>
+    </div>
+</footer>
+
+        
+    </article>
+</div>
+
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="site-title-wrapper">
+                    <h1 class="site-title">
+                        <a title="Idiomatic Go" href="http://replace-this-with-your-hugo-site.com/">Idiomatic Go</a>
+                    </h1>
+                    <a class="button-square button-jump-top js-jump-top" href="#">
+                        <i class="fa fa-angle-up"></i>
+                    </a>
+                </div>
+
+                <p class="footer-copyright">
+                    <span>&copy; 2017 / Powered by <a href="http://gohugo.io/">Hugo</a></span>
+                </p>
+                <p class="footer-copyright">
+                    <span><a href="https://github.com/roryg/ghostwriter">Ghostwriter theme</a> By <a href="http://jollygoodthemes.com">JollyGoodThemes</a></span>
+                    <span>/ <a href="https://github.com/jbub/ghostwriter">Ported</a> to Hugo By <a href="https://github.com/jbub">jbub</a></span>
+                </p>
+            </div>
+        </footer>
+
+        <script src="http://replace-this-with-your-hugo-site.com/js/jquery-1.11.3.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.5/highlight.min.js"></script>
+        <script src="http://replace-this-with-your-hugo-site.com/js/jquery.fitvids.js"></script>
+        <script src="http://replace-this-with-your-hugo-site.com/js/scripts.js"></script>
+    </body>
+</html>
+

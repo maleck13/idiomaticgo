@@ -3,17 +3,17 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>Accept interfaces return structs &middot; Craig Brookes</title>
-        <meta name="description" content="Outlines why you should write your packages to accept interfaces and return structs">
+        <title>Accept interfaces return concrete types &middot; Craig Brookes</title>
+        <meta name="description" content="Outlines why you should write your libraries and packages to accept interfaces and return concrete types">
         <meta name="HandheldFriendly" content="True">
         <meta name="MobileOptimized" content="320">
         <meta name="generator" content="Hugo 0.17" />
         <meta name="robots" content="index,follow">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
-        <link rel="stylesheet" href="http://idiomaticgo.com/css/normalize.css">
-        <link rel="stylesheet" href="http://idiomaticgo.com/css/highlight.css">
-        <link rel="stylesheet" href="http://idiomaticgo.com/css/style.css">
+        <link rel="stylesheet" href="http://replace-this-with-your-hugo-site.com/css/normalize.css">
+        <link rel="stylesheet" href="http://replace-this-with-your-hugo-site.com/css/highlight.css">
+        <link rel="stylesheet" href="http://replace-this-with-your-hugo-site.com/css/style.css">
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,400,600,700,300&subset=latin,cyrillic-ext,latin-ext,cyrillic">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
     </head>
@@ -26,20 +26,12 @@
                     <div class="site-title-wrapper">
                         
                             <h1 class="site-title">
-                                <a title="Idiomatic Go" href="http://idiomaticgo.com/">Idiomatic Go</a>
+                                <a title="Idiomatic Go" href="http://replace-this-with-your-hugo-site.com/">Idiomatic Go</a>
                             </h1>
                         
-                        <a class="button-square" href="http://idiomaticgo.com/index.xml"><i class="fa fa-rss"></i></a>
-                        
-                            <a class="button-square button-social hint--top" data-hint="Twitter" title="Twitter" href="https://twitter.com/maleck13">
-                                <i class="fa fa-twitter"></i>
-                            </a>
+                        <a class="button-square" href="http://replace-this-with-your-hugo-site.com/index.xml"><i class="fa fa-rss"></i></a>
                         
                         
-                        
-                            <a class="button-square button-social hint--top" data-hint="Github" title="Github" href="https://github.com/maleck13">
-                                <i class="fa fa-github-alt"></i>
-                            </a>
                         
                         
                         
@@ -58,9 +50,9 @@
 <div class="container">
     <article class="post-container" itemscope="" itemtype="http://schema.org/BlogPosting">
         <header class="post-header">
-    <h1 class="post-title" itemprop="name headline">Accept interfaces return structs</h1>
+    <h1 class="post-title" itemprop="name headline">Accept interfaces return concrete types</h1>
     
-        <p class="post-description" itemprop="description">Outlines why you should write your packages to accept interfaces and return structs</p>
+        <p class="post-description" itemprop="description">Outlines why you should write your libraries and packages to accept interfaces and return concrete types</p>
     
     <p class="post-date">
         <span>Published <time datetime="2016-11-02" itemprop="datePublished">Wed, Nov 2, 2016</time></span>
@@ -76,190 +68,162 @@
         <div class="post-content clearfix" itemprop="articleBody">
     
 
-    <p>I have heard mentioned several times this idea of accepting interfaces and returning structs.
-Here I will try to outline why I think this is good practice.</p>
+    
 
-<p>When writing packages our goal is for them to be consumed by someone. Either by our own code, but also, hopefully, by others too.
-We want to make this as simple and frictionless as possible and avoid causing frustration for the consumers of our packages.
-Accepting interfaces and returning structs can be a powerful way to achieve this.
-It allows the consumers of our packages to reduce the coupling between their code and yours. It also makes it
-easier to write tests for their code that depend on your package. Lets look at some examples.</p>
+<p><strong>Note this post was edited after taking on board feedback from <a href="https://www.reddit.com/r/golang/comments/5cos3x/accept_interfaces_return_structs/">reddit discussion</a></strong></p>
 
-<p>First lets look at what happens when we accept a type specific to our package in the exposed API and then return an interface we have defined:</p>
+<p>I have heard mentioned several times this idea of accepting interfaces and returning concrete types.
+Here I will try to outline why I think this is good practice. It is important to note that this is intended as a principal to keep in mind when writing
+Go code, rather than an absolute rule.</p>
 
-<pre><code class="language-go">
-package rest
+<p>When writing libraries and packages our goal is for them to be consumed by someone. Either by our own code, but also, hopefully, by others too.
+We want to make this as simple and frictionless as possible.
+Accepting interfaces and returning structs can be a powerful way to achieve this. It allows the consumers of our packages to reduce the coupling between their code and yours. It helps clearly define the contract between API and the consumer,
+it makes it easier when consumers of your code are writing tests for the code that depends on your package.
+Lets look at some examples to help illustrate.</p>
 
-type Config struct {
-	Host string
-	Port int32
-}
+<h3 id="accepting-interfaces">Accepting Interfaces</h3>
 
-</code></pre>
+<p>Accepting a concrete type can limit the uses or our API and also cause difficulty for consumers of our code when it comes to testing. For example, if the public API of our library or package were to accept the concrete type <code>*os.File</code>  instead
+of the <code>io.Writer</code> interface, it would force consumers to use the same types in order to use our API. Now if we were instead to accept an interface, it would ensure that the requirements of our API
+are met, while not forcing a concrete type on the consumer.</p>
 
-<pre><code class="language-go">
-package client
+<p>Below is a contrived, simple example, but it is something you can often hit in real world code.</p>
 
-import &quot;github.com/someone/rest&quot;
+<p><em>Using a concrete type</em></p>
 
-type Client interface {
-	DoSomething() error
-	DoSomethingMore() error
-	ThisIsDoingSomething() error
-}
+<pre><code class="language-go">package myapi
 
-func New(c rest.Config) Client {
-	/// init and return a client
-}
-</code></pre>
+import &quot;os&quot;
 
-<p>You could argue that the config and the client should be in the same package and you would probably be right, but this is just a contrived example to illustrate the point.
-Now someone consuming our code has to do some extra work when testing and also rely on not only the <code>client</code> package but also the <code>rest</code> package.</p>
+type MyWriter struct {}
 
-<pre><code class="language-go">
-package mywebsite
-
-import(
-    &quot;github.com/someone/client&quot;
-    &quot;github.com/someone/rest&quot;
-)
-
-func SomeFunc(c client.Client) error {
-
-	return c.DoSomething()
-}
-
-func main() {
-	c := client.New(rest.Config{
-		Host: &quot;ahost&quot;,
-		Port: 3000,
-	})
-	SomeFunc(c)
-}
-</code></pre>
-
-<p>So we mentioned how this pattern effect tests. How does this effect tests? Well because we returned an interface that we defined,
-the consumer is now forced to implement every method on that interface rather than just the ones they care about:</p>
-
-<pre><code class="language-go">//test my service with a mock client 
-
-package mywebsite_test
-
-import &quot;github.com/me/mywebsite&quot; 
-type mockClient struct{}
-
-//notice we have to implement all the methods rather than just the one we use.
-
-func (mockClient) DoSomething() error {
-	return nil
-}
-func (mockClient) DoSomethingMore() error {
-	return nil
-}
-func (mockClient) ThisIsDoingSomething() error {
+func (mw *MyWriter) UpdateSomething(f *os.File) error {
+	//code using the file to write ...
 	return nil
 }
 
-func TestSomeFunc(t *testing.T) {
-	if err := mywebsite.SomeFunc(mockClient{}); err != nil {
-		t.Errorf(&quot;did not expect an error but got %s &quot;, err.Error())
-	}
+func New() *MyWriter {
+	return &amp;MyWriterApi{}
 }
 
 </code></pre>
 
-<p>Now lets change our implementation to accept intefaces and return structs.</p>
+<p>So we mentioned how this pattern effect the consumers of our API. Lets look at how the above API would be consumed and tested:</p>
+
+<pre><code class="language-go">  package myconsumer 
+
+  import (
+      &quot;github.com/someone/myapi&quot;
+  )
+
+  func UseMyApi(doer *myapi.MyWriter, f *os.File)error{
+      //do awesome business logic
+      return doer.UpdateSomething(f)
+  }
+
+</code></pre>
+
+<p>In our application code, at first, this seems ok as long as we only need to use files with this API. The difficulty shows itself best when we implement a test.</p>
+
+<pre><code class="language-go">  package myconsumer_test 
+
+  import (
+      &quot;github.com/someone/myconsumer&quot;
+      &quot;os&quot;
+  )
+
+  type mockDoer struct{}
+  func (md mockDoer)UpdateSomething(f *os.File)error{
+      return nil
+  }
+
+  func TestUseMyApi(t *testing.T){
+
+      //we now need to get a concrete implementation of  *os.File somehow to use with our test.
+      f,err := os.Open(&quot;/some/path/to/fixture/file.txt&quot;)
+      if err != nil{
+          t.Fatalf(&quot;failed to open file for test %s&quot;,err.Error())
+      }
+      defer f.Close()
+      if err := myconsumer.UseMyApi(mockDoer{},f); err != nil{
+          t.Errorf(&quot;did not expect error calling UseMyApi but got %s &quot;, err.Error())
+      }
+       
+  }
+
+</code></pre>
+
+<p>As the API implementation can only accept a concret <code>*os.File</code> we are now forced to use a real file in our test.
+So how dow we solve this problem and make our API better for its consumers?</p>
+
+<p><em>Accepting an interface</em></p>
+
+<p>Back to API code:</p>
 
 <pre><code class="language-go">
-package client
+package myapi
 
-type ClientConfig interface {
-	Host() string
-	Port() int32
-}
+import &quot;io&quot;
 
-type Client struct {
-	config ClientConfig
-}
 
-func (c *Client) DoSomething() error {
-	//do some work ...
+type MyWriter struct {}
+
+#Swithing from an io.File to an io.Writer makes things far easer for the consumer.
+func (mw *myWriter) UpdateSomething(w io.Writer) error {
+	//code using the writer to write ...
 	return nil
 }
 
-//imagine more methods
-
-/// New inits and returns a client
-func New(c ClientConfig) *Client {
-	return &amp;Client{
-		config: c,
-	}
-}
-</code></pre>
-
-<p>So now our implementation has changed lets see the impact we have on the consumers of our code.</p>
-
-<pre><code class="language-go">
-package mywebsite
-
-import(
-    &quot;github.com/someone/client&quot; //Only one import now
-)
-
-type clientConfig struct{}
-
-func (cc clientConfig) Host() string {
-	return &quot;ahost&quot;
-}
-
-func (cc clientConfig) Port() int32 {
-	return 3000
-}
-
-// Consumer can now define an interface that our struct fulfills but that only has one method.
-type Client interface {
-	DoSomething() error
-}
-
-func SomeFunc(c Client) error {
-
-	return c.DoSomething()
-}
-
-func main() {
-	c := client.New(&amp;clientConfig{})
-	SomeFunc(c)
-}
-</code></pre>
-
-<p>So now there is only one import from our package reducing our footprint on the consumer&rsquo;s code. But more importantly, because we returned a struct,
-the consumer of the code can define their own interface with just the methods they care about. Lets look at our test code now.</p>
-
-<pre><code class="language-go">//test my service with a mock client 
-
-package mywebsite_test
-
-import &quot;github.com/me/mywebsite&quot; 
-
-type mockClient struct{}
-
-//notice we have to implement ONLY the method we use now.
-
-func (mockClient) DoSomething() error {
-	return nil
-}
-
-func TestSomeFunc(t *testing.T) {
-	if err := mywebsite.SomeFunc(mockClient{}); err != nil {
-		t.Errorf(&quot;did not expect an error but got %s &quot;, err.Error())
-	}
+func New() *MyWriter {
+	return &amp;MyWriterApi{}
 }
 
 </code></pre>
 
-<p>The boiler plate in the test is vastly reduced as only one method had to be mocked rather than three.
-Hopefully I have shown the benefit of accepting interfaces and returning structs here and it will inspire you to
-make use of this pattern in your own code.</p>
+<p>Now our implementation takes anything that implements the builtin <code>io.Writer</code> interface. Although
+we are using a builtin interface here, in code, within specific business domains, this could well be a custom interface
+expressing the concerns of your domain. So how does this change impact our test code?</p>
+
+<pre><code class="language-go">  package myconsumer_test 
+
+  import (
+      &quot;github.com/someone/myconsumer&quot;
+      &quot;io&quot;
+      &quot;bytes&quot;
+  )
+
+  type mockDoer struct{}
+  func (md mockDoer)UpdateSomething(w io.Writer)error{
+      return nil
+  }
+
+  func TestUseMyApi(t *testing.T){
+
+      //we no longer need an actual file, all we need is something that 
+      //implements the write method from io.Writer. bytes.Buffer is one such type.
+      var b bytes.Buffer
+    
+      if err := myconsumer.UseMyApi(mockDoer{},&amp;b); err != nil{
+          t.Errorf(&quot;did not expect error calling UseMyApi but got %s &quot;, err.Error())
+      }
+       
+  }
+
+</code></pre>
+
+<p>Another advantage here is that if our UseMyApi function, also writes using the writer, we can assert based on the contents of the bytes.Buffer.</p>
+
+<h4 id="reducing-our-footprint-and-coupling">Reducing our footprint and coupling</h4>
+
+<p>Our libraries may use other libraries for some of its functionality. In our public API we should avoid exposing third party types to the consumers of our API. If our public API exposes a 3rd party type, then our consumers will also need to import and use that third party type. This couples there code to a dependency of your code and means they need to know too much about how the innards of your API works. It is a leaky abstraction. To avoid this we should either define our own types that internally can be translated to the required type or define and accept an interface.</p>
+
+<h3 id="returning-concrete-types">Returning Concrete Types</h3>
+
+<p>So what are the advantages of returning concrete types? If we want to accept interfaces, why would we not also return interfaces?</p>
+
+<p>Navigating to the implementation code of a returned type, is something that you will often do when using a library even if it is only to get a better understanding of how something works. Returning an interface makes this far more difficult for the consumer as they will first navigate to an interface definition and then need to spend additional time trying to find the implementation code.
+Consumers of our code, my only be interested in a small subset of the functionality, while returning an interface doesn&rsquo;t stop them from defining a new interface, nor does returning a concrete type. So given the uneeded indirection a returned interface will cause, it makes more sense and reduces friction to return a concrete type.</p>
 
 </div>
 
@@ -267,19 +231,19 @@ make use of this pattern in your own code.</p>
     
 
     <div class="share">
-        <a class="icon-twitter" href="http://twitter.com/share?text=Accept%20interfaces%20return%20structs&url=http%3a%2f%2fidiomaticgo.com%2fpost%2fbest-practice%2faccept-interfaces-return-structs%2f"
+        <a class="icon-twitter" href="http://twitter.com/share?text=Accept%20interfaces%20return%20concrete%20types&url=http%3a%2f%2freplace-this-with-your-hugo-site.com%2fpost%2fbest-practice%2faccept-interfaces-return-structs%2f"
             onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
             <i class="fa fa-twitter"></i>
             <span class="hidden">Twitter</span>
         </a>
 
-        <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fidiomaticgo.com%2fpost%2fbest-practice%2faccept-interfaces-return-structs%2f"
+        <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http%3a%2f%2freplace-this-with-your-hugo-site.com%2fpost%2fbest-practice%2faccept-interfaces-return-structs%2f"
             onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
             <i class="fa fa-facebook"></i>
             <span class="hidden">Facebook</span>
         </a>
 
-        <a class="icon-google-plus" href="https://plus.google.com/share?url=http%3a%2f%2fidiomaticgo.com%2fpost%2fbest-practice%2faccept-interfaces-return-structs%2f"
+        <a class="icon-google-plus" href="https://plus.google.com/share?url=http%3a%2f%2freplace-this-with-your-hugo-site.com%2fpost%2fbest-practice%2faccept-interfaces-return-structs%2f"
            onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
            <i class="fa fa-google-plus"></i>
             <span class="hidden">Google+</span>
@@ -298,7 +262,7 @@ make use of this pattern in your own code.</p>
             <div class="container">
                 <div class="site-title-wrapper">
                     <h1 class="site-title">
-                        <a title="Idiomatic Go" href="http://idiomaticgo.com/">Idiomatic Go</a>
+                        <a title="Idiomatic Go" href="http://replace-this-with-your-hugo-site.com/">Idiomatic Go</a>
                     </h1>
                     <a class="button-square button-jump-top js-jump-top" href="#">
                         <i class="fa fa-angle-up"></i>
@@ -306,7 +270,7 @@ make use of this pattern in your own code.</p>
                 </div>
 
                 <p class="footer-copyright">
-                    <span>&copy; 2016 / Powered by <a href="http://gohugo.io/">Hugo</a></span>
+                    <span>&copy; 2017 / Powered by <a href="http://gohugo.io/">Hugo</a></span>
                 </p>
                 <p class="footer-copyright">
                     <span><a href="https://github.com/roryg/ghostwriter">Ghostwriter theme</a> By <a href="http://jollygoodthemes.com">JollyGoodThemes</a></span>
@@ -315,10 +279,10 @@ make use of this pattern in your own code.</p>
             </div>
         </footer>
 
-        <script src="http://idiomaticgo.com/js/jquery-1.11.3.min.js"></script>
+        <script src="http://replace-this-with-your-hugo-site.com/js/jquery-1.11.3.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.5/highlight.min.js"></script>
-        <script src="http://idiomaticgo.com/js/jquery.fitvids.js"></script>
-        <script src="http://idiomaticgo.com/js/scripts.js"></script>
+        <script src="http://replace-this-with-your-hugo-site.com/js/jquery.fitvids.js"></script>
+        <script src="http://replace-this-with-your-hugo-site.com/js/scripts.js"></script>
     </body>
 </html>
 

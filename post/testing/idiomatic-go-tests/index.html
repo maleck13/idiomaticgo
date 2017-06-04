@@ -3,18 +3,18 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>Idiomatic go tests &middot; Craig Brookes</title>
+        <title>idiomatic go tests &middot; Craig Brookes</title>
         <meta name="description" content="What does it mean to write idiomatic go tests? I will outline what it means to me and try to convey through details and examples what I wish I had known when starting out with Go.
-Idiomatic go tests are written using the builtin testing package Go comes with a builtin testing package. There is no need for an external testing package. Although these do exist and it is not for me to say you shouldn&rsquo;t use them.">
+Idiomatic go tests are written using the builtin testing package Go comes with a builtin testing package. There is no need for an external testing package. Although these do exist and it is not for me to say you shouldn’t use them.">
         <meta name="HandheldFriendly" content="True">
         <meta name="MobileOptimized" content="320">
         <meta name="generator" content="Hugo 0.17" />
         <meta name="robots" content="index,follow">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
-        <link rel="stylesheet" href="http://idiomaticgo.com/css/normalize.css">
-        <link rel="stylesheet" href="http://idiomaticgo.com/css/highlight.css">
-        <link rel="stylesheet" href="http://idiomaticgo.com/css/style.css">
+        <link rel="stylesheet" href="http://replace-this-with-your-hugo-site.com/css/normalize.css">
+        <link rel="stylesheet" href="http://replace-this-with-your-hugo-site.com/css/highlight.css">
+        <link rel="stylesheet" href="http://replace-this-with-your-hugo-site.com/css/style.css">
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,400,600,700,300&subset=latin,cyrillic-ext,latin-ext,cyrillic">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
     </head>
@@ -27,20 +27,12 @@ Idiomatic go tests are written using the builtin testing package Go comes with a
                     <div class="site-title-wrapper">
                         
                             <h1 class="site-title">
-                                <a title="Idiomatic Go" href="http://idiomaticgo.com/">Idiomatic Go</a>
+                                <a title="Idiomatic Go" href="http://replace-this-with-your-hugo-site.com/">Idiomatic Go</a>
                             </h1>
                         
-                        <a class="button-square" href="http://idiomaticgo.com/index.xml"><i class="fa fa-rss"></i></a>
-                        
-                            <a class="button-square button-social hint--top" data-hint="Twitter" title="Twitter" href="https://twitter.com/maleck13">
-                                <i class="fa fa-twitter"></i>
-                            </a>
+                        <a class="button-square" href="http://replace-this-with-your-hugo-site.com/index.xml"><i class="fa fa-rss"></i></a>
                         
                         
-                        
-                            <a class="button-square button-social hint--top" data-hint="Github" title="Github" href="https://github.com/maleck13">
-                                <i class="fa fa-github-alt"></i>
-                            </a>
                         
                         
                         
@@ -59,7 +51,7 @@ Idiomatic go tests are written using the builtin testing package Go comes with a
 <div class="container">
     <article class="post-container" itemscope="" itemtype="http://schema.org/BlogPosting">
         <header class="post-header">
-    <h1 class="post-title" itemprop="name headline">Idiomatic go tests</h1>
+    <h1 class="post-title" itemprop="name headline">idiomatic go tests</h1>
     
     <p class="post-date">
         <span>Published <time datetime="2016-10-16" itemprop="datePublished">Sun, Oct 16, 2016</time></span>
@@ -81,39 +73,36 @@ Idiomatic go tests are written using the builtin testing package Go comes with a
 
 <h3 id="idiomatic-go-tests-are-written-using-the-builtin-testing-package">Idiomatic go tests are written using the builtin testing package</h3>
 
-<p>Go comes with a builtin <a href="https://golang.org/pkg/testing/">testing</a> package. There is no need for an external testing package. Although these do exist and it is not for me to say you shouldn&rsquo;t use them.
-However I would encourage writing tests using the builtin testing package, and only when you begin to feel it is failing you somehow, look at what external packages can offer.</p>
+<p>Go comes with a builtin <a href="https://golang.org/pkg/testing/">testing</a> package. There is no need for an external testing package. Although these do exist and it is not for me to say you shouldn’t use them. However I would encourage writing tests using the builtin testing package, and only when you begin to feel it is failing you somehow, look at what external packages can offer.</p>
 
 <p>Tests in a Go program are normally defined along with the source code for the package. Notice below that the test file is named <code>*_test.go</code> Go expects your tests to be named this way.</p>
 
 <pre><code>myPkg
 ├── repo.go
 ├── repo_test.go
-
 </code></pre>
 
-<p>The testing package is built to be used with the <code>go test</code> command. It looks for tests that are defined in the following way:</p>
+<p>The testing package is built to be used with the go test command. It looks for tests that are defined in the following way:</p>
 
-<pre><code class="language-go">func TestXxx(*testing.T)
+<pre><code>func TestXxx(*testing.T)
 </code></pre>
 
-<p>Lets look at a very simple example the first file is <code>sum.go</code> and the second file <code>sum_test.go</code>:</p>
+<p>Lets look at a very simple example the first file is sum.go and the second file sum_test.go:</p>
 
 <p><code>sum.go</code></p>
 
-<pre><code class="language-go">package myPkg  
+<pre><code>package myPkg  
 
 Sum(a,b int)int{
     return a + b
 }
-
 </code></pre>
 
 <p>Next we have our test for this package. Things to notice here include the package name and the test name:</p>
 
 <p><code>sum_test.go</code></p>
 
-<pre><code class="language-go">package myPkg_test //notice we name it _test this allows us to work only with the exported api of our package.
+<pre><code>package myPkg_test //notice we name it _test this allows us to work only with the exported api of our package.
 
 import &quot;testing&quot;
 import &quot;github.com/maleck13/myPkg&quot;
@@ -129,21 +118,24 @@ func TestSum(t *testing.T){
 <p>Somethings worth pointing out:</p>
 
 <ul>
-<li><p>In our test the package name is <code>package_test</code> this is a convention in Go. It allows the test file to be in the same package as the source code, but only have access to the
-exported types, and functions etc.</p></li>
+<li><p>in our test the package name is <code>package_test</code> this is a convention in Go. It allows the test file to be in the same package as the source code, but only have access to the exported types, and functions etc.</p></li>
 
-<li><p>Notice that in our test, we do not have an inbuilt assert. Read the code again, notice that there is very little different
-in how our test code reads compared with our business logic code, it is just more Go code. This is intentional. It may mean you write a few more lines of code,
-but has the advantage of allowing anyone who knows Go to be able to read and modify your test code without the overhead of
-learning a testing DSL.</p></li>
+<li><p>Notice that in our test, we do not have an inbuilt assert. Read the code again, notice that there is very little different in how our test code reads compared with our business logic code, it is just more Go code. This is intentional. It may mean you write a few more lines of code, but has the advantage of allowing anyone who knows Go to be able to read and modify your test code without the overhead of learning a testing DSL.</p></li>
 </ul>
+
+<h3 id="running-tests">Running Tests</h3>
+
+<p>You can run tests using the builtin <code>go test</code> command.
+There are some very useful features in this command. To get package level coverage reports run <code>go test -cover</code>
+To test for race conditions you can add the <code>-race</code> flag.
+To run a single test you can use the <code>-run</code> flag that takes a regular expression. For example <code>go test -run ^TestSum$</code>.
+Using <code>go test -h</code> will show you the wide set of options available.</p>
 
 <h3 id="mocks-and-stubs">Mocks and Stubs</h3>
 
-<p>Mocks are used frequently in Go tests. The most common way you will see a mock used is to provide a different implementation of a required interface. Mocks can be stored anywhere in your test code, but often they would be stored
-under a mock or test package.  Lets look at an example of mocking in Go.</p>
+<p>Mocks are used frequently in Go tests. The most common way you will see a mock used is to provide a different implementation of a required interface. Mocks can be stored anywhere in your test code, but often they would be stored under a mock or test package. Lets look at an example of mocking in Go.</p>
 
-<pre><code class="language-go">package mything
+<pre><code>package mything
 
 type Doer interface{
     Do()error 
@@ -158,7 +150,7 @@ func BusinessDoer (d Doer)error{
 
 <p>And now our test file:</p>
 
-<pre><code class="language-go">package mything_test 
+<pre><code>package mything_test 
 
 import mything
 
@@ -178,22 +170,15 @@ func TestBusinessDoer(t *testing.T){
         t.Fatalf(&quot;did not expect an error but got %s&quot;,err.Error())
     }
 }
-
 </code></pre>
 
-<p>So in our test we have swapped out the original implementation of the Doer interface for our own implementation that we can easily
-control the behaviour of. It is important that if you want to unit test your code, that you express the dependencies used by that piece of code
-as an interface as this will allow for simple mocking. It is also a good reason to aim to keep your interfaces small. The smaller the interface the
-less work it is to mock out.</p>
+<p>So in our test we have swapped out the original implementation of the Doer interface for our own implementation that we can easily control the behaviour of. It is important that if you want to unit test your code, that you express the dependencies used by that piece of code as an interface as this will allow for simple mocking. It is also a good reason to aim to keep your interfaces small. The smaller the interface the less work it is to mock out.</p>
 
 <h3 id="table-driven-tests">Table driven tests</h3>
 
-<p>In the above example we defined a test that tested some business logic for one case where the business logic
-does not return an error. Normally we would also want to at least test one other case, the case where the the dependency does
-return an error. Now we could define a new test entirely for this, however often in Go code you will see an approach for this called table testing.
-Lets look at an example that expands on the first example.</p>
+<p>In the above example we defined a test that tested some business logic for one case where the business logic does not return an error. Normally we would also want to at least test one other case, the case where the the dependency does return an error. Now we could define a new test entirely for this, however often in Go code you will see an approach for this called table testing. Lets look at an example that expands on the first example.</p>
 
-<pre><code class="language-go">package mything
+<pre><code>package mything
 
 type Doer interface{
     Do()error 
@@ -203,12 +188,11 @@ func BusinessDoer (d Doer)error{
     //some business logic 
     return d.Do()
 }
-
 </code></pre>
 
 <p>And now our test file:</p>
 
-<pre><code class="language-go">package mything_test 
+<pre><code>package mything_test 
 
 import mything
 
@@ -253,15 +237,11 @@ func TestBusinessDoer(t *testing.T){
         })
     }
 }
-
 </code></pre>
 
-<p>So now we are defining a set of test cases in a slice. We are defining some inputs and expected behaviour. Then we are ranging over each of these
-tests cases and running them in a separate sub test. Sub tests allow us to re run a single failing test case rather than them all. In the above case if
-you wanted to run the sub test <code>test fails when dependency errors</code> you would do so by running the following command from within the package.</p>
+<p>So now we are defining a set of test cases in a slice. We are defining some inputs and expected behaviour. Then we are ranging over each of these tests cases and running them in a separate sub test. Sub tests allow us to re run a single failing test case rather than them all. In the above case if you wanted to run the sub test you would do so by running the following command from within the package.</p>
 
 <pre><code>go test -run TestBusinessDoer/test_fails_when_dependency_errors
-
 </code></pre>
 
 </div>
@@ -270,19 +250,19 @@ you wanted to run the sub test <code>test fails when dependency errors</code> yo
     
 
     <div class="share">
-        <a class="icon-twitter" href="http://twitter.com/share?text=Idiomatic%20go%20tests&url=http%3a%2f%2fidiomaticgo.com%2fpost%2ftesting%2fidiomatic-go-tests%2f"
+        <a class="icon-twitter" href="http://twitter.com/share?text=idiomatic%20go%20tests&url=http%3a%2f%2freplace-this-with-your-hugo-site.com%2fpost%2ftesting%2fidiomatic-go-tests%2f"
             onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
             <i class="fa fa-twitter"></i>
             <span class="hidden">Twitter</span>
         </a>
 
-        <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fidiomaticgo.com%2fpost%2ftesting%2fidiomatic-go-tests%2f"
+        <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http%3a%2f%2freplace-this-with-your-hugo-site.com%2fpost%2ftesting%2fidiomatic-go-tests%2f"
             onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
             <i class="fa fa-facebook"></i>
             <span class="hidden">Facebook</span>
         </a>
 
-        <a class="icon-google-plus" href="https://plus.google.com/share?url=http%3a%2f%2fidiomaticgo.com%2fpost%2ftesting%2fidiomatic-go-tests%2f"
+        <a class="icon-google-plus" href="https://plus.google.com/share?url=http%3a%2f%2freplace-this-with-your-hugo-site.com%2fpost%2ftesting%2fidiomatic-go-tests%2f"
            onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
            <i class="fa fa-google-plus"></i>
             <span class="hidden">Google+</span>
@@ -301,7 +281,7 @@ you wanted to run the sub test <code>test fails when dependency errors</code> yo
             <div class="container">
                 <div class="site-title-wrapper">
                     <h1 class="site-title">
-                        <a title="Idiomatic Go" href="http://idiomaticgo.com/">Idiomatic Go</a>
+                        <a title="Idiomatic Go" href="http://replace-this-with-your-hugo-site.com/">Idiomatic Go</a>
                     </h1>
                     <a class="button-square button-jump-top js-jump-top" href="#">
                         <i class="fa fa-angle-up"></i>
@@ -309,7 +289,7 @@ you wanted to run the sub test <code>test fails when dependency errors</code> yo
                 </div>
 
                 <p class="footer-copyright">
-                    <span>&copy; 2016 / Powered by <a href="http://gohugo.io/">Hugo</a></span>
+                    <span>&copy; 2017 / Powered by <a href="http://gohugo.io/">Hugo</a></span>
                 </p>
                 <p class="footer-copyright">
                     <span><a href="https://github.com/roryg/ghostwriter">Ghostwriter theme</a> By <a href="http://jollygoodthemes.com">JollyGoodThemes</a></span>
@@ -318,10 +298,10 @@ you wanted to run the sub test <code>test fails when dependency errors</code> yo
             </div>
         </footer>
 
-        <script src="http://idiomaticgo.com/js/jquery-1.11.3.min.js"></script>
+        <script src="http://replace-this-with-your-hugo-site.com/js/jquery-1.11.3.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.5/highlight.min.js"></script>
-        <script src="http://idiomaticgo.com/js/jquery.fitvids.js"></script>
-        <script src="http://idiomaticgo.com/js/scripts.js"></script>
+        <script src="http://replace-this-with-your-hugo-site.com/js/jquery.fitvids.js"></script>
+        <script src="http://replace-this-with-your-hugo-site.com/js/scripts.js"></script>
     </body>
 </html>
 
