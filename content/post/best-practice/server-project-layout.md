@@ -3,6 +3,7 @@ date = "2017-05-20T18:35:18+01:00"
 title = "Server project layout"
 description = "Outlines how I like to setup a new server project allowing for clean separation of concerns, thourough testing and low cost of change"
 author = "Craig Brookes"
+draft = false
 tags = [
 ]
 
