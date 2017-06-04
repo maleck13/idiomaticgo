@@ -2,22 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://replace-this-with-your-hugo-site.com/</loc>
+    <loc>http://idiomaticgo.com/</loc>
     <lastmod>2017-05-20T18:35:18+01:00</lastmod>
   </url>
   
   <url>
-    <loc>http://replace-this-with-your-hugo-site.com/post/best-practice/server-project-layout/</loc>
+    <loc>http://idiomaticgo.com/post/best-practice/server-project-layout/</loc>
     <lastmod>2017-05-20T18:35:18+01:00</lastmod>
   </url>
   
   <url>
-    <loc>http://replace-this-with-your-hugo-site.com/post/best-practice/accept-interfaces-return-structs/</loc>
+    <loc>http://idiomaticgo.com/post/best-practice/accept-interfaces-return-structs/</loc>
     <lastmod>2016-11-02T10:30:10+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://replace-this-with-your-hugo-site.com/post/testing/idiomatic-go-tests/</loc>
+    <loc>http://idiomaticgo.com/post/testing/idiomatic-go-tests/</loc>
     <lastmod>2016-10-16T10:20:44+01:00</lastmod>
   </url>
   

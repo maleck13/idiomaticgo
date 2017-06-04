@@ -2,19 +2,19 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Post-rsses on Idiomatic Go</title>
-    <link>http://replace-this-with-your-hugo-site.com/post/index.xml</link>
+    <link>http://idiomaticgo.com/post/index.xml</link>
     <description>Recent content in Post-rsses on Idiomatic Go</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 20 May 2017 18:35:18 +0100</lastBuildDate>
-    <atom:link href="http://replace-this-with-your-hugo-site.com/post/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://idiomaticgo.com/post/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Server project layout</title>
-      <link>http://replace-this-with-your-hugo-site.com/post/best-practice/server-project-layout/</link>
+      <link>http://idiomaticgo.com/post/best-practice/server-project-layout/</link>
       <pubDate>Sat, 20 May 2017 18:35:18 +0100</pubDate>
       
-      <guid>http://replace-this-with-your-hugo-site.com/post/best-practice/server-project-layout/</guid>
+      <guid>http://idiomaticgo.com/post/best-practice/server-project-layout/</guid>
       <description>
 
 &lt;p&gt;I have started many projects and finsished far less. One of the initial issues I found when moving to go was figuring out a good way to layout my projects. There are some good resources for helping with this:&lt;/p&gt;
@@ -149,10 +149,10 @@ For example, if you wanted to move out the customer domain, as it is isolated, y
     
     <item>
       <title>Accept interfaces return concrete types</title>
-      <link>http://replace-this-with-your-hugo-site.com/post/best-practice/accept-interfaces-return-structs/</link>
+      <link>http://idiomaticgo.com/post/best-practice/accept-interfaces-return-structs/</link>
       <pubDate>Wed, 02 Nov 2016 10:30:10 +0000</pubDate>
       
-      <guid>http://replace-this-with-your-hugo-site.com/post/best-practice/accept-interfaces-return-structs/</guid>
+      <guid>http://idiomaticgo.com/post/best-practice/accept-interfaces-return-structs/</guid>
       <description>
 
 &lt;p&gt;&lt;strong&gt;Note this post was edited after taking on board feedback from &lt;a href=&#34;https://www.reddit.com/r/golang/comments/5cos3x/accept_interfaces_return_structs/&#34;&gt;reddit discussion&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;
@@ -314,10 +314,10 @@ Consumers of our code, my only be interested in a small subset of the functional
     
     <item>
       <title>Idiomatic Go Tests</title>
-      <link>http://replace-this-with-your-hugo-site.com/post/testing/idiomatic-go-tests/</link>
+      <link>http://idiomaticgo.com/post/testing/idiomatic-go-tests/</link>
       <pubDate>Sun, 16 Oct 2016 10:20:44 +0100</pubDate>
       
-      <guid>http://replace-this-with-your-hugo-site.com/post/testing/idiomatic-go-tests/</guid>
+      <guid>http://idiomaticgo.com/post/testing/idiomatic-go-tests/</guid>
       <description>
 
 &lt;p&gt;What does it mean to write idiomatic go tests? I will outline what it means to me and try to convey through details and examples what I wish I had known when starting out with Go.&lt;/p&gt;
