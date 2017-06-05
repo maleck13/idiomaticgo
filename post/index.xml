@@ -17,19 +17,19 @@
       <guid>http://idiomaticgo.com/post/best-practice/server-project-layout/</guid>
       <description>
 
-&lt;p&gt;I have started many projects and finsished far less. One of the initial issues I found when moving to go was figuring out a good way to layout my projects. There are some good resources for helping with this:&lt;/p&gt;
+&lt;p&gt;I have started many projects and finished far less. One of the initial issues I found when moving to Go was figuring out a good way to layout my projects. There are some good resources for helping with this:&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&#34;https://golang.org/doc/effective_go.html&#34;&gt;effective go&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://golang.org/doc/effective_go.html&#34;&gt;Effective Go&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&#34;https://golang.org/doc/code.html&#34;&gt;go code&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://golang.org/doc/code.html&#34;&gt;Go Code&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&#34;http://howistart.org/posts/go/1/#a-new-project&#34;&gt;peter bourgon, how I start&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://howistart.org/posts/go/1/#a-new-project&#34;&gt;Peter Bourgon, how I start&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&#34;https://medium.com/@benbjohnson/standard-package-layout-7cdbc8391fc1&#34;&gt;Ben Johnson Standard Package Layout&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;I have leaned heavilly on these. However I still found myself struggling with finding the right structure. Particularly around areas such as where should my types go and what about my interfaces. So in this post I will give you my take on a what I believe works well particulalry with API server projects as these are the type of project I regularly work on.&lt;/p&gt;
+&lt;p&gt;I have leaned heavily on these. However I still found myself struggling with finding the right structure. Particularly around areas such as where should my types go and what about my interfaces. So in this post I will give you my take on a what I believe works well particularly with API server projects as these are the type of project I regularly work on.&lt;/p&gt;
 
-&lt;p&gt;Before I start, I should be clear that this is not meant as authorative it is merely an attempt to share what I have learned. I have no doubt I will iterate further.&lt;/p&gt;
+&lt;p&gt;Before I start, I should be clear that this is not meant as authoritative it is merely an attempt to share what I have learned. I have no doubt I will iterate further.&lt;/p&gt;
 
 &lt;h2 id=&#34;server-applications-are-like-onions-onions-have-layers-applications-have-layers&#34;&gt;Server applications are like onions, onions have layers applications have layers.&lt;/h2&gt;
 
@@ -95,7 +95,7 @@ Lets walk through the layers and see where they sit.&lt;/p&gt;
 
 &lt;h2 id=&#34;domain-services&#34;&gt;Domain Services&lt;/h2&gt;
 
-&lt;p&gt;Our domain services are the core business logic that act on the domain model. In this case it is the &lt;code&gt;customer&lt;/code&gt; , &lt;code&gt;orders&lt;/code&gt; and &lt;code&gt;catalog&lt;/code&gt; packages. They are standalone and do not depend on other domain packages. It is also this layer that defines the interfaces it requires to fulfill its logic. I am experimenting with keeping these interfaces in a file called &lt;code&gt;interfaces.go&lt;/code&gt; at the root of the core domain as these are also likely to be used across the different subdomains. These interfaces are often fullfiled by the infrastructure layer.&lt;/p&gt;
+&lt;p&gt;Our domain services are the core business logic that act on the domain model. In this case it is the &lt;code&gt;customer&lt;/code&gt; , &lt;code&gt;orders&lt;/code&gt; and &lt;code&gt;catalog&lt;/code&gt; packages. They are standalone and do not depend on other domain packages. It is also this layer that defines the interfaces it requires to fulfill its logic. I am experimenting with keeping these interfaces in a file called &lt;code&gt;interfaces.go&lt;/code&gt; at the root of the core domain as these are also likely to be used across the different subdomains. These interfaces are often fulfiled by the infrastructure layer.&lt;/p&gt;
 
 &lt;ul&gt;
 &lt;li&gt;layer: 2&lt;/li&gt;
@@ -104,7 +104,7 @@ Lets walk through the layers and see where they sit.&lt;/p&gt;
 
 &lt;h2 id=&#34;application-services&#34;&gt;Application Services&lt;/h2&gt;
 
-&lt;p&gt;Application services orchastrate use cases of the application between the different domain services. They are used by the user interface layer to interact with the domain. So in our case, we have a place order use case that would probably use the &lt;code&gt;customer&lt;/code&gt; domain service, and the &lt;code&gt;orders&lt;/code&gt; domain service in order to fulfill the use case.
+&lt;p&gt;Application services orchestrate use cases of the application between the different domain services. They are used by the user interface layer to interact with the domain. So in our case, we have a place order use case that would probably use the &lt;code&gt;customer&lt;/code&gt; domain service, and the &lt;code&gt;orders&lt;/code&gt; domain service in order to fulfill the use case.
 They should not have business logic. Their responsibility is to orchestrate the flow of data between the different subdomains. If you don&amp;rsquo;t have multiple domains then it is likely you could just use the domain service directly at that point.&lt;/p&gt;
 
 &lt;ul&gt;
@@ -114,7 +114,7 @@ They should not have business logic. Their responsibility is to orchestrate the 
 
 &lt;h2 id=&#34;infrastructure&#34;&gt;Infrastructure&lt;/h2&gt;
 
-&lt;p&gt;Infrastructure is made up of our dependencies and integrations: the database, external services such as payment gateways. They are dependencies which our business domain does not care about. This layer implements the interfaces defined by the domain services and it can depend on internal layers such as the domain model.&lt;/p&gt;
+&lt;p&gt;Infrastructure is made up of our dependencies and integrations: the database, external services such as payment gateways. They are dependencies which our business domain does not care about but is reliant on something fulfilling this role. This layer implements the interfaces defined by the domain services and it can depend on internal layers such as the domain model.&lt;/p&gt;
 
 &lt;ul&gt;
 &lt;li&gt;layer: 4&lt;/li&gt;
